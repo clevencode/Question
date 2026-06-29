@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technologie &amp; IA • Quiz Vrai/Faux</title>
+    <meta name="description" content="Comprendre la technologie, les données, l'information et l'intelligence artificielle. Quiz de 8 questions avec corrigé explicatif.">
+    <meta name="theme-color" content="#004BF3">
+    <meta name="robots" content="index, follow">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="imagem/icon-tech.svg" type="image/svg+xml">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="bg-grid" aria-hidden="true"></div>
+    <canvas id="grid-canvas" aria-hidden="true"></canvas>
+    <div class="bg-accent" aria-hidden="true"></div>
+
+    <nav class="nav" aria-label="Navigation principale">
+        <button type="button" class="nav__brand" onclick="showIntro()" aria-label="Retour à l'accueil">
+            <img src="imagem/icon-tech.svg" alt="" class="nav__icon" width="32" height="32">
+            <span class="nav__title">Technologie &amp; IA</span>
+        </button>
+        <span class="nav__tag">Quiz V/F</span>
+    </nav>
+
+    <div class="app-shell">
+
+        <!-- INTRO -->
+        <section id="intro-screen">
+            <header class="intro-hero">
+                <span class="intro-hero__label">Module éducatif</span>
+                <h1 class="type-display intro-hero__title">Technologie<br>&amp; Intelligence Artificielle</h1>
+                <p class="intro-hero__subtitle">Données, information, connaissance — comprendre les fondamentaux avant de répondre au quiz.</p>
+            </header>
+
+            <div id="intro-content" class="intro-content" role="article" aria-label="Contenu éducatif"></div>
+
+            <form class="start-form" onsubmit="event.preventDefault(); startQuiz();">
+                <label for="user-name" class="start-form__label">Votre nom</label>
+                <input
+                    type="text"
+                    id="user-name"
+                    class="input"
+                    placeholder="Entrez votre nom pour commencer"
+                    autocomplete="name"
+                    maxlength="80"
+                    required
+                >
+                <p id="name-error" class="input-error hidden">Veuillez entrer votre nom pour répondre aux questions.</p>
+                <button type="submit" class="btn btn--primary">
+                    Répondre aux questions
+                    <span aria-hidden="true">→</span>
+                </button>
+            </form>
+        </section>
+
+        <!-- QUIZ -->
+        <section id="quiz-screen" class="hidden">
+            <header class="quiz-header">
+                <p class="quiz-greeting">Bonjour, <span id="quiz-greeting"></span></p>
+                <h2 class="type-display quiz-title">Quiz Vrai / Faux</h2>
+            </header>
+
+            <div class="progress">
+                <div class="progress__meta">
+                    <span class="type-mono">Progression</span>
+                    <span id="progress-text" class="type-mono">0/8</span>
+                </div>
+                <div id="progress-track" class="progress__track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="8">
+                    <div id="progress-bar" class="progress__bar"></div>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <div id="question-number" class="question-card__num">01</div>
+                <p id="question-text" class="question-card__text"></p>
+
+                <div class="answer-group" role="group" aria-label="Réponse Vrai ou Faux">
+                    <button type="button" id="btn-true" class="answer-btn" onclick="selectAnswer(true)">Vrai</button>
+                    <button type="button" id="btn-false" class="answer-btn" onclick="selectAnswer(false)">Faux</button>
+                </div>
+            </div>
+
+            <nav class="quiz-nav" aria-label="Navigation du quiz">
+                <button type="button" id="btn-prev" class="btn btn--outline" onclick="prevQuestion()" disabled>Précédent</button>
+                <button type="button" id="btn-next" class="btn btn--primary" onclick="nextQuestion()" disabled>Suivant</button>
+            </nav>
+        </section>
+
+        <!-- RESULTS -->
+        <section id="results-screen" class="hidden">
+            <header class="results-header">
+                <div class="score-ring-wrap" aria-hidden="true">
+                    <svg viewBox="0 0 120 120">
+                        <circle class="score-ring__bg" cx="60" cy="60" r="54"/>
+                        <circle id="score-ring" class="score-ring__fill" cx="60" cy="60" r="54"/>
+                    </svg>
+                    <span id="result-score" class="score-ring__value">0%</span>
+                </div>
+                <h2 id="result-name" class="type-display result-name"></h2>
+                <p id="result-grade" class="result-grade"></p>
+                <p id="result-detail" class="result-detail"></p>
+            </header>
+
+            <h3 class="gabarito-title">Corrigé explicatif</h3>
+            <div id="gabarito-list" class="gabarito-list"></div>
+
+            <footer class="results-footer">
+                <button type="button" class="btn btn--primary" onclick="restartQuiz()">Recommencer</button>
+            </footer>
+        </section>
+
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/quiz.js"></script>
+    <script src="js/results.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

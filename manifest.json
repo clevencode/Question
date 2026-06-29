@@ -1,0 +1,20 @@
+{
+  "name": "Technologie & IA",
+  "short_name": "Tech & IA",
+  "description": "Quiz Vrai/Faux sur la technologie, les données et l'intelligence artificielle.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#004BF3",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/imagem/icon-tech.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
