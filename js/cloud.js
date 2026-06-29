@@ -1,6 +1,4 @@
-// cloud.js — Sincronização por dispositivo + nome (mesmo aparelho, nome diferente = outro usuário)
-
-const DEVICE_KEY_STORAGE = 'techIaDeviceKey';
+// cloud.js — Sincronização por nome do aluno (1 registro, histórico de tentativas)
 
 let supabaseClient = null;
 
@@ -9,28 +7,6 @@ function normalizeStudentKey(name) {
     .toLowerCase()
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '');
-}
-
-function getDeviceKey() {
-  try {
-    let key = localStorage.getItem(DEVICE_KEY_STORAGE);
-    if (!key) {
-      key = crypto.randomUUID();
-      localStorage.setItem(DEVICE_KEY_STORAGE, key);
-    }
-    return key;
-  } catch {
-    return 'unknown-device';
-  }
-}
-
-function buildRecordId(deviceKey, studentKey) {
-  return `${deviceKey}::${studentKey}`;
-}
-
-function formatDeviceLabel(deviceKey) {
-  if (!deviceKey || deviceKey === 'legacy') return '—';
-  return deviceKey.slice(0, 8);
 }
 
 function isCloudReady() {
@@ -68,7 +44,6 @@ function fromCloudRow(row) {
 
   return {
     id: row.id,
-    deviceKey: row.device_key || 'legacy',
     studentKey: row.student_key || normalizeStudentKey(row.name),
     name: row.name,
     percent: row.percent,
@@ -85,12 +60,10 @@ function fromCloudRow(row) {
 function expandAttempts(studentRow) {
   const name = studentRow.name;
   const studentKey = studentRow.studentKey || normalizeStudentKey(name);
-  const deviceKey = studentRow.deviceKey || getDeviceKey();
 
   if (studentRow.attemptsHistory?.length) {
     return studentRow.attemptsHistory.map(attempt => ({
       id: attempt.id,
-      deviceKey,
       studentKey,
       name,
       percent: attempt.percent,
@@ -105,7 +78,6 @@ function expandAttempts(studentRow) {
 
   return [{
     id: studentRow.id,
-    deviceKey,
     studentKey,
     name,
     percent: studentRow.percent,
@@ -122,16 +94,13 @@ async function syncResultToCloud(entry) {
   const sb = getSupabase();
   if (!sb) return false;
 
-  const deviceKey = entry.deviceKey || getDeviceKey();
   const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
-  const recordId = buildRecordId(deviceKey, studentKey);
   const attempt = toAttemptRecord(entry);
   const now = entry.date || new Date().toISOString();
 
   const { data: existing, error: fetchError } = await sb
     .from('quiz_results')
     .select('*')
-    .eq('device_key', deviceKey)
     .eq('student_key', studentKey)
     .maybeSingle();
 
@@ -156,7 +125,6 @@ async function syncResultToCloud(entry) {
         attempts_history: history,
         updated_at: now
       })
-      .eq('device_key', deviceKey)
       .eq('student_key', studentKey);
 
     if (error) {
@@ -168,8 +136,7 @@ async function syncResultToCloud(entry) {
   }
 
   const { error } = await sb.from('quiz_results').insert({
-    id: recordId,
-    device_key: deviceKey,
+    id: studentKey,
     student_key: studentKey,
     name: entry.name,
     percent: entry.percent,
@@ -215,12 +182,10 @@ async function fetchResultsByStudentName(name) {
   const sb = getSupabase();
   if (!sb) return [];
 
-  const deviceKey = getDeviceKey();
   const studentKey = normalizeStudentKey(name);
   const { data, error } = await sb
     .from('quiz_results')
     .select('*')
-    .eq('device_key', deviceKey)
     .eq('student_key', studentKey)
     .maybeSingle();
 
