@@ -1,6 +1,6 @@
 // quiz.js — Logique du questionnaire Vrai/Faux
 
-const AUTO_ADVANCE_MS = 400;
+const AUTO_ADVANCE_MS = 450;
 let advanceTimeout = null;
 let isAdvancing = false;
 
@@ -30,30 +30,33 @@ const QuizFlow = {
 
 function updateProgress() {
   const total = QUESTIONS.length;
-  const answered = QuizFlow.getAnsweredCount();
-  const percent = Math.round((answered / total) * 100);
+  const current = currentQuestionIndex + 1;
+  const percent = Math.round((current / total) * 100);
+
   const bar = document.getElementById('progress-bar');
   const track = document.getElementById('progress-track');
   const text = document.getElementById('progress-text');
+  const label = document.getElementById('progress-label');
 
-  if (bar) bar.style.width = `${answered === 0 ? 0 : Math.max(percent, 4)}%`;
+  if (bar) bar.style.width = `${Math.max(percent, 4)}%`;
   if (track) {
-    track.setAttribute('aria-valuenow', String(answered));
+    track.setAttribute('aria-valuenow', String(current));
     track.setAttribute('aria-valuemax', String(total));
   }
-  if (text) text.textContent = `${answered}/${total}`;
+  if (text) text.textContent = `${current}/${total}`;
+  if (label) label.textContent = `Question ${current} sur ${total}`;
 }
 
 function renderQuestion() {
   const question = QUESTIONS[currentQuestionIndex];
   if (!question) return;
 
+  const card = document.getElementById('question-card');
   const numEl = document.getElementById('question-number');
   const textEl = document.getElementById('question-text');
   const btnTrue = document.getElementById('btn-true');
   const btnFalse = document.getElementById('btn-false');
   const btnPrev = document.getElementById('btn-prev');
-  const btnNext = document.getElementById('btn-next');
 
   if (numEl) numEl.textContent = String(currentQuestionIndex + 1).padStart(2, '0');
   if (textEl) textEl.textContent = question.text;
@@ -61,15 +64,17 @@ function renderQuestion() {
   const current = answers[question.id];
   btnTrue?.classList.toggle('answer-btn--selected', current === true);
   btnFalse?.classList.toggle('answer-btn--selected', current === false);
+  btnTrue?.setAttribute('aria-pressed', String(current === true));
+  btnFalse?.setAttribute('aria-pressed', String(current === false));
 
   if (btnPrev) btnPrev.disabled = currentQuestionIndex === 0;
-  if (btnNext) {
-    const isLast = currentQuestionIndex === QUESTIONS.length - 1;
-    btnNext.textContent = isLast ? 'TERMINER' : 'SUIVANT';
-    btnNext.disabled = !QuizFlow.canAdvanceFrom(currentQuestionIndex);
-  }
+
+  card?.classList.remove('question-card--enter');
+  void card?.offsetWidth;
+  card?.classList.add('question-card--enter');
 
   updateProgress();
+  announce(`Question ${currentQuestionIndex + 1} sur ${QUESTIONS.length}. ${question.text}`);
 }
 
 function setAnswerButtonsDisabled(disabled) {
@@ -118,8 +123,10 @@ function goToQuestion(index) {
 function nextQuestion() {
   clearAdvanceTimeout();
   if (!QuizFlow.canAdvanceFrom(currentQuestionIndex)) return;
+
   if (currentQuestionIndex < QUESTIONS.length - 1) {
     goToQuestion(currentQuestionIndex + 1);
+    document.getElementById('btn-true')?.focus();
   } else {
     showResults();
   }
