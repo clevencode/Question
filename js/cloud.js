@@ -318,6 +318,23 @@ async function fetchResultsByStudentName(name) {
   return summary ? [summary] : [];
 }
 
+async function clearStudentFromCloud(studentKey) {
+  const sb = getSupabase();
+  if (!sb) return;
+
+  const key = normalizeStudentKey(studentKey) || studentKey;
+
+  try {
+    const records = await findStudentRecords(sb, key);
+
+    for (const record of records) {
+      await sb.from('quiz_results').delete().eq('id', record.id);
+    }
+  } catch (error) {
+    console.warn('Cloud clear failed:', error.message);
+  }
+}
+
 async function clearResultsFromCloud() {
   const sb = getSupabase();
   if (!sb) {

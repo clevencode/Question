@@ -193,6 +193,22 @@ async function showHistory() {
   });
 }
 
+async function clearAllHistory() {
+  if (!window.confirm('Effacer tout l\'historique sur cet appareil ? Cette action est irréversible.')) {
+    return;
+  }
+
+  const students = HistoryManager.getUniqueStudents();
+
+  for (const student of students) {
+    await clearStudentFromCloud(student.studentKey);
+  }
+
+  HistoryManager.clear();
+  updateHistoryLink();
+  await renderHistoryScreen();
+}
+
 async function redoHistoryEntry(studentKey, studentName = '') {
   const entry = await resolveHistoryEntry(studentKey);
   const baseName = entry?.name || studentName;

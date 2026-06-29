@@ -1,8 +1,7 @@
 // storage.js — Resultados na nuvem (todos os dispositivos)
 
 const HistoryStore = {
-  fetchAll: fetchResultsFromCloud,
-  clear: clearResultsFromCloud
+  fetchAll: fetchResultsFromCloud
 };
 
 function formatDate(iso) {
