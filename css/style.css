@@ -1,15 +1,13 @@
-/* style.css — Swiss cyber-minimalist */
+/* style.css — Swiss cyber-minimalist — paleta: branco, preto, #004BF3 */
 
 :root {
   --blue: #004BF3;
   --blue-dim: rgba(0, 75, 243, 0.12);
+  --blue-mid: rgba(0, 75, 243, 0.4);
+  --blue-soft: rgba(0, 75, 243, 0.08);
   --blue-glow: rgba(0, 75, 243, 0.35);
   --black: #000000;
   --white: #FFFFFF;
-  --gray-100: #F5F5F5;
-  --gray-200: #E0E0E0;
-  --gray-400: #999999;
-  --gray-600: #666666;
   --font-sans: 'Space Grotesk', 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
   --grid-size: 24px;
@@ -40,8 +38,8 @@ body {
   z-index: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(0, 75, 243, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 75, 243, 0.08) 1px, transparent 1px);
+    linear-gradient(var(--blue-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--blue-soft) 1px, transparent 1px);
   background-size: var(--grid-size) var(--grid-size);
 }
 
@@ -60,7 +58,7 @@ body {
   width: 60vw;
   height: 60vw;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 75, 243, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--blue-soft) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
   animation: pulse-glow 8s ease-in-out infinite;
@@ -91,9 +89,9 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--white);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0, 75, 243, 0.15);
+  border-bottom: 1px solid var(--blue);
   max-width: 100%;
 }
 
@@ -142,7 +140,7 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gray-400);
+  color: var(--blue);
 }
 
 /* ── Intro ── */
@@ -165,11 +163,12 @@ body {
 .intro-hero__title {
   font-size: clamp(2rem, 6vw, 3.25rem);
   margin-bottom: 8px;
+  color: var(--black);
 }
 
 .intro-hero__subtitle {
   font-size: 1rem;
-  color: var(--gray-600);
+  color: var(--black);
   font-weight: 400;
   max-width: 480px;
 }
@@ -179,13 +178,13 @@ body {
   flex-direction: column;
   gap: 0;
   margin: 40px 0;
-  border: 1px solid rgba(0, 75, 243, 0.2);
-  background: var(--gray-100);
+  border: 1px solid var(--blue);
+  background: var(--white);
 }
 
 .intro-section {
   padding: 24px 28px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--blue);
   animation: fade-up 0.6s ease both;
   animation-delay: var(--delay, 0s);
 }
@@ -203,7 +202,7 @@ body {
 
 .intro-section__body {
   font-size: 0.95rem;
-  color: var(--gray-600);
+  color: var(--black);
   line-height: 1.7;
 }
 
@@ -216,14 +215,14 @@ body {
 
 .intro-list li {
   font-size: 0.9rem;
-  color: var(--gray-600);
+  color: var(--black);
   padding-left: 16px;
-  border-left: 2px solid rgba(0, 75, 243, 0.4);
+  border-left: 2px solid var(--blue);
 }
 
 .intro-list__label {
   font-weight: 600;
-  color: var(--black);
+  color: var(--blue);
 }
 
 @keyframes fade-up {
@@ -238,7 +237,7 @@ body {
   gap: 16px;
   margin-top: 40px;
   padding-top: 32px;
-  border-top: 1px solid rgba(0, 75, 243, 0.3);
+  border-top: 1px solid var(--blue);
 }
 
 .start-form__label {
@@ -246,14 +245,14 @@ body {
   font-size: 0.7rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--gray-400);
+  color: var(--blue);
 }
 
 .input {
   width: 100%;
   padding: 16px 20px;
   background: var(--white);
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--black);
   color: var(--black);
   font-family: var(--font-sans);
   font-size: 1rem;
@@ -267,12 +266,14 @@ body {
 }
 
 .input--error {
-  border-color: #ff4444;
+  border-color: var(--black);
+  border-width: 2px;
 }
 
 .input-error {
   font-size: 0.8rem;
-  color: #ff6b6b;
+  color: var(--black);
+  font-weight: 600;
 }
 
 /* ── Buttons ── */
@@ -298,14 +299,14 @@ body {
 }
 
 .btn--primary:hover {
-  background: #0038c4;
+  background: var(--black);
   box-shadow: 0 0 24px var(--blue-glow);
 }
 
 .btn--outline {
-  background: transparent;
+  background: var(--white);
   color: var(--black);
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--black);
 }
 
 .btn--outline:hover {
@@ -319,7 +320,7 @@ body {
 }
 
 .btn--outline:disabled:hover {
-  border-color: rgba(0, 0, 0, 0.2);
+  border-color: var(--black);
   color: var(--black);
 }
 
@@ -339,6 +340,7 @@ body {
 
 .quiz-title {
   font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--black);
 }
 
 .progress {
@@ -353,7 +355,7 @@ body {
 
 .progress__track {
   height: 2px;
-  background: rgba(0, 0, 0, 0.08);
+  background: var(--black);
   position: relative;
   overflow: hidden;
 }
@@ -367,8 +369,8 @@ body {
 }
 
 .question-card {
-  border: 1px solid rgba(0, 75, 243, 0.25);
-  background: var(--gray-100);
+  border: 1px solid var(--blue);
+  background: var(--white);
   padding: 40px 32px;
   position: relative;
 }
@@ -387,7 +389,7 @@ body {
   font-family: var(--font-mono);
   font-size: 3rem;
   font-weight: 300;
-  color: rgba(0, 75, 243, 0.25);
+  color: var(--blue-dim);
   line-height: 1;
   margin-bottom: 16px;
 }
@@ -397,6 +399,7 @@ body {
   font-weight: 500;
   line-height: 1.5;
   margin-bottom: 36px;
+  color: var(--black);
 }
 
 .answer-group {
@@ -408,7 +411,7 @@ body {
 .answer-btn {
   padding: 20px;
   background: var(--white);
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--black);
   color: var(--black);
   font-family: var(--font-sans);
   font-size: 0.85rem;
@@ -440,12 +443,13 @@ body {
 
 .answer-btn--selected {
   border-color: var(--blue);
-  background: var(--blue-dim);
-  color: var(--blue);
+  background: var(--blue);
+  color: var(--white);
 }
 
 .answer-btn--selected::after {
   transform: scaleX(1);
+  background: var(--white);
 }
 
 .quiz-nav {
@@ -476,7 +480,7 @@ body {
 
 .score-ring__bg {
   fill: none;
-  stroke: rgba(0, 0, 0, 0.08);
+  stroke: var(--black);
   stroke-width: 6;
 }
 
@@ -503,6 +507,7 @@ body {
 .result-name {
   font-size: clamp(1.25rem, 3vw, 1.75rem);
   margin-bottom: 4px;
+  color: var(--black);
 }
 
 .result-grade {
@@ -516,7 +521,7 @@ body {
 
 .result-detail {
   font-size: 0.9rem;
-  color: var(--gray-400);
+  color: var(--black);
 }
 
 .gabarito-title {
@@ -524,10 +529,10 @@ body {
   font-family: var(--font-mono);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--gray-400);
+  color: var(--blue);
   margin: 48px 0 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(0, 75, 243, 0.2);
+  border-bottom: 1px solid var(--blue);
 }
 
 .gabarito-list {
@@ -537,9 +542,9 @@ body {
 }
 
 .gabarito-item {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--black);
   padding: 24px;
-  background: var(--gray-100);
+  background: var(--white);
 }
 
 .gabarito-item--correct {
@@ -547,7 +552,7 @@ body {
 }
 
 .gabarito-item--wrong {
-  border-left: 3px solid #ff4444;
+  border-left: 3px solid var(--black);
 }
 
 .gabarito-item__header {
@@ -560,7 +565,7 @@ body {
 .gabarito-item__num {
   font-family: var(--font-mono);
   font-size: 0.7rem;
-  color: var(--gray-400);
+  color: var(--blue);
 }
 
 .gabarito-item__status {
@@ -569,13 +574,14 @@ body {
 }
 
 .gabarito-item--correct .gabarito-item__status { color: var(--blue); }
-.gabarito-item--wrong .gabarito-item__status { color: #ff4444; }
+.gabarito-item--wrong .gabarito-item__status { color: var(--black); }
 
 .gabarito-item__question {
   font-size: 0.95rem;
   font-weight: 500;
   margin-bottom: 12px;
   line-height: 1.5;
+  color: var(--black);
 }
 
 .gabarito-item__answers {
@@ -583,21 +589,21 @@ body {
   flex-wrap: wrap;
   gap: 16px;
   font-size: 0.8rem;
-  color: var(--gray-400);
+  color: var(--black);
   margin-bottom: 12px;
 }
 
 .gabarito-item__answers strong {
-  color: var(--black);
+  color: var(--blue);
 }
 
 .gabarito-item__explanation {
   font-size: 0.85rem;
-  color: var(--gray-600);
+  color: var(--black);
   line-height: 1.6;
   padding: 12px 16px;
-  background: rgba(0, 75, 243, 0.06);
-  border-left: 2px solid rgba(0, 75, 243, 0.3);
+  background: var(--blue-dim);
+  border-left: 2px solid var(--blue);
 }
 
 .results-footer {
