@@ -32,7 +32,7 @@ const INTRO_CONTENT = [
   },
   {
     title: "Qu'est-ce que l'IA (Intelligence Artificielle) ?",
-    body: "L'Intelligence Artificielle (IA) est la technologie qui permet aux machines d'imiter l'intelligence humaine. Les mathématiques sont un langage universel et matériel."
+    body: "L'Intelligence Artificielle (IA) est la technologie qui permet aux machines d'imiter les capacités de l'intelligence humaine grâce aux mathématiques et aux sciences informatiques."
   },
   {
     title: 'Comment ça fonctionne ?',
