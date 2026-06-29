@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Admin • Technologie &amp; IA</title>
+    <meta name="theme-color" content="#004BF3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="nav">
+        <span class="nav__title">Dashboard — Usage institutionnel</span>
+        <div class="nav__actions">
+            <a href="../" class="nav__link">← Quiz</a>
+            <button type="button" id="btn-refresh" class="nav__link">Actualiser</button>
+            <button type="button" id="btn-clear" class="nav__link nav__link--danger">Effacer</button>
+        </div>
+    </nav>
+
+    <main class="shell">
+        <header class="hero">
+            <span class="hero__label">Suivi des performances</span>
+            <h1 class="hero__title">Technologie &amp; IA</h1>
+            <p class="hero__subtitle">Résultats enregistrés sur <strong>cet appareil</strong> lorsque les élèves terminent le quiz sur le même navigateur.</p>
+            <p id="sync-status" class="sync-status">Chargement…</p>
+        </header>
+
+        <section class="stats" aria-label="Statistiques globales">
+            <article class="stat-card">
+                <span class="stat-card__value" id="stat-students">0</span>
+                <span class="stat-card__label">Élèves</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-card__value" id="stat-attempts">0</span>
+                <span class="stat-card__label">Tentatives</span>
+            </article>
+            <article class="stat-card stat-card--highlight">
+                <span class="stat-card__value" id="stat-average">0%</span>
+                <span class="stat-card__label">Moyenne</span>
+            </article>
+        </section>
+
+        <h2 class="section-title">Performance par élève</h2>
+
+        <p id="dashboard-empty" class="empty-state">
+            Aucun résultat. Les élèves doivent terminer le quiz sur cet ordinateur/navigateur.
+        </p>
+
+        <div id="students-list" class="students-list"></div>
+
+        <h2 class="section-title section-title--spaced">Historique détaillé</h2>
+        <div id="attempts-table-wrap" class="table-wrap hidden">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Élève</th>
+                        <th>Score</th>
+                        <th>Correctes</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="attempts-body"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script src="js/storage.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
