@@ -73,7 +73,7 @@ function showResults() {
 
   HistoryManager.add(entry);
   syncResultToCloud(entry);
-  updateHistoryLink();
+  updateHistoryLink(name);
 
   showScreen('results-screen', {
     announceMsg: `Résultat : ${score.percent}%. ${score.correct} réponses correctes sur ${score.total}.`,
@@ -83,8 +83,14 @@ function showResults() {
   renderResultsUI({ score, answersMap: answers });
 }
 
-function showHistoryEntry(id) {
-  const entry = HistoryManager.getById(id);
+async function showHistoryEntry(id) {
+  let entry = HistoryManager.getById(id);
+
+  if (!entry && userName?.trim()) {
+    const entries = await HistoryManager.loadForStudent(userName);
+    entry = entries.find(e => e.id === id) || null;
+  }
+
   if (!entry) return;
 
   viewingHistoryId = id;
@@ -104,12 +110,15 @@ function showHistoryEntry(id) {
   });
 }
 
-function renderHistoryScreen() {
+async function renderHistoryScreen() {
   const container = document.getElementById('history-list');
   const empty = document.getElementById('history-empty');
   if (!container) return;
 
-  const entries = HistoryManager.load();
+  const name = userName?.trim();
+  const entries = name
+    ? await HistoryManager.loadForStudent(name)
+    : HistoryManager.load();
 
   if (empty) empty.classList.toggle('hidden', entries.length > 0);
 
@@ -140,10 +149,12 @@ function renderHistoryScreen() {
   `).join('');
 }
 
-function showHistory() {
-  renderHistoryScreen();
+async function showHistory() {
+  await renderHistoryScreen();
   showScreen('history-screen', {
-    announceMsg: 'Historique des résultats.',
+    announceMsg: userName?.trim()
+      ? `Historique de ${userName.trim()}.`
+      : 'Historique des résultats.',
     focusSelector: '#history-title'
   });
 }

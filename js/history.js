@@ -42,9 +42,29 @@ const HistoryManager = {
     return this.load().find(e => e.id === id) || null;
   },
 
+  getByStudentKey(studentKey) {
+    return this.load().filter(e => (e.studentKey || normalizeStudentKey(e.name)) === studentKey);
+  },
+
+  async loadForStudent(name) {
+    const studentKey = normalizeStudentKey(name);
+    const cloudEntries = await fetchResultsByStudentName(name);
+    const localEntries = this.getByStudentKey(studentKey);
+    const merged = new Map();
+
+    [...cloudEntries, ...localEntries].forEach(entry => {
+      merged.set(entry.id, entry);
+    });
+
+    return Array.from(merged.values())
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+  },
+
   createEntry({ name, score, grade, answersMap }) {
+    const studentKey = normalizeStudentKey(name);
     return {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: `${studentKey}-${Date.now()}`,
+      studentKey,
       name,
       percent: score.percent,
       correct: score.correct,
@@ -68,10 +88,17 @@ function formatHistoryDate(iso) {
   });
 }
 
-function updateHistoryLink() {
-  const count = HistoryManager.load().length;
+async function updateHistoryLink(name = userName?.trim()) {
   const link = document.getElementById('intro-history-link');
   const navBtn = document.getElementById('nav-history-btn');
+  let count = 0;
+
+  if (name) {
+    const entries = await HistoryManager.loadForStudent(name);
+    count = entries.length;
+  } else {
+    count = HistoryManager.load().length;
+  }
 
   if (link) {
     link.classList.toggle('hidden', count === 0);

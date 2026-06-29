@@ -4,11 +4,12 @@ function groupByStudent(entries) {
   const map = new Map();
 
   entries.forEach(entry => {
+    const key = entry.studentKey || normalizeStudentKey(entry.name);
     const name = entry.name?.trim() || 'Sans nom';
-    if (!map.has(name)) {
-      map.set(name, { name, attempts: [], best: 0, latest: null });
+    if (!map.has(key)) {
+      map.set(key, { name, attempts: [], best: 0, latest: null });
     }
-    const student = map.get(name);
+    const student = map.get(key);
     student.attempts.push(entry);
     student.best = Math.max(student.best, entry.percent);
     if (!student.latest || new Date(entry.date) > new Date(student.latest.date)) {
@@ -122,7 +123,8 @@ async function refreshDashboard() {
     renderStats(entries);
     renderStudents(entries);
     renderAttempts(entries);
-    setStatus(`Synchronisé — ${entries.length} résultat${entries.length !== 1 ? 's' : ''} (tous appareils)`);
+    const students = groupByStudent(entries).length;
+    setStatus(`Synchronisé — ${students} élève${students !== 1 ? 's' : ''}, ${entries.length} tentative${entries.length !== 1 ? 's' : ''} (par nom)`);
   } catch (error) {
     renderStats([]);
     renderStudents([]);

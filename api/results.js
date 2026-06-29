@@ -14,9 +14,17 @@ function getSupabase() {
   });
 }
 
+function normalizeStudentKey(name) {
+  return (name?.trim() || 'sans nom')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+}
+
 function fromRow(row) {
   return {
     id: row.id,
+    studentKey: row.student_key || normalizeStudentKey(row.name),
     name: row.name,
     percent: row.percent,
     correct: row.correct,
@@ -31,6 +39,7 @@ function fromRow(row) {
 function toRow(entry) {
   return {
     id: entry.id,
+    student_key: entry.studentKey || normalizeStudentKey(entry.name),
     name: entry.name,
     percent: entry.percent,
     correct: entry.correct,

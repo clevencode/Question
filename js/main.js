@@ -111,7 +111,10 @@ function renderIntroContent() {
 function initNameInput() {
   const nameInput = document.getElementById('user-name');
   nameInput?.addEventListener('input', () => {
-    if (nameInput.value.trim()) clearNameError();
+    if (nameInput.value.trim()) {
+      clearNameError();
+      updateHistoryLink(nameInput.value.trim());
+    }
   });
 }
 

@@ -1,6 +1,13 @@
-// cloud.js — Sincronização Supabase (todos os dispositivos)
+// cloud.js — Sincronização Supabase por nome do aluno
 
 let supabaseClient = null;
+
+function normalizeStudentKey(name) {
+  return (name?.trim() || 'sans nom')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+}
 
 function isCloudReady() {
   return CLOUD_CONFIG.supabaseUrl.startsWith('https://')
@@ -20,8 +27,11 @@ function getSupabase() {
 }
 
 function toCloudRow(entry) {
+  const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
+
   return {
     id: entry.id,
+    student_key: studentKey,
     name: entry.name,
     percent: entry.percent,
     correct: entry.correct,
@@ -37,6 +47,7 @@ function toCloudRow(entry) {
 function fromCloudRow(row) {
   return {
     id: row.id,
+    studentKey: row.student_key || normalizeStudentKey(row.name),
     name: row.name,
     percent: row.percent,
     correct: row.correct,
@@ -78,6 +89,26 @@ async function fetchResultsFromCloud() {
 
   if (error) {
     throw new Error(`Erreur Supabase : ${error.message}`);
+  }
+
+  return Array.isArray(data) ? data.map(fromCloudRow) : [];
+}
+
+async function fetchResultsByStudentName(name) {
+  const sb = getSupabase();
+  if (!sb) return [];
+
+  const studentKey = normalizeStudentKey(name);
+  const { data, error } = await sb
+    .from('quiz_results')
+    .select('*')
+    .eq('student_key', studentKey)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  if (error) {
+    console.warn('Cloud fetch by name failed:', error.message);
+    return [];
   }
 
   return Array.isArray(data) ? data.map(fromCloudRow) : [];
