@@ -30,6 +30,7 @@ function startQuiz() {
 
   currentQuestionIndex = 0;
   answers = {};
+  clearAdvanceTimeout();
 
   hideAllScreens();
   document.getElementById('quiz-screen')?.classList.remove('hidden');
@@ -42,6 +43,7 @@ function startQuiz() {
 }
 
 function restartQuiz() {
+  clearAdvanceTimeout();
   userName = '';
   currentQuestionIndex = 0;
   answers = {};

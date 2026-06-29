@@ -1,5 +1,9 @@
 // quiz.js — Logique du questionnaire Vrai/Faux
 
+const AUTO_ADVANCE_MS = 400;
+let advanceTimeout = null;
+let isAdvancing = false;
+
 const QuizFlow = {
   isValidAnswer(value) {
     return value === true || value === false;
@@ -68,21 +72,51 @@ function renderQuestion() {
   updateProgress();
 }
 
+function setAnswerButtonsDisabled(disabled) {
+  document.getElementById('btn-true')?.toggleAttribute('disabled', disabled);
+  document.getElementById('btn-false')?.toggleAttribute('disabled', disabled);
+}
+
+function clearAdvanceTimeout() {
+  if (advanceTimeout) {
+    clearTimeout(advanceTimeout);
+    advanceTimeout = null;
+  }
+  isAdvancing = false;
+  setAnswerButtonsDisabled(false);
+}
+
+function scheduleAutoAdvance() {
+  clearAdvanceTimeout();
+  isAdvancing = true;
+  setAnswerButtonsDisabled(true);
+
+  advanceTimeout = setTimeout(() => {
+    advanceTimeout = null;
+    isAdvancing = false;
+    setAnswerButtonsDisabled(false);
+    nextQuestion();
+  }, AUTO_ADVANCE_MS);
+}
+
 function selectAnswer(value) {
   const question = QUESTIONS[currentQuestionIndex];
-  if (!question) return;
+  if (!question || isAdvancing) return;
 
   answers[question.id] = value;
   renderQuestion();
+  scheduleAutoAdvance();
 }
 
 function goToQuestion(index) {
   if (index < 0 || index >= QUESTIONS.length) return;
+  clearAdvanceTimeout();
   currentQuestionIndex = index;
   renderQuestion();
 }
 
 function nextQuestion() {
+  clearAdvanceTimeout();
   if (!QuizFlow.canAdvanceFrom(currentQuestionIndex)) return;
   if (currentQuestionIndex < QUESTIONS.length - 1) {
     goToQuestion(currentQuestionIndex + 1);

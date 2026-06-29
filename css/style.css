@@ -344,6 +344,11 @@ body {
   color: var(--white);
 }
 
+.answer-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
 .quiz-nav {
   display: flex;
   justify-content: space-between;
