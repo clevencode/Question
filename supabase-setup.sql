@@ -1,4 +1,4 @@
--- Executar no Supabase → SQL Editor (gratuito)
+-- Executar no Supabase → SQL Editor (projeto NOVO, tabela ainda não existe)
 
 create table if not exists quiz_results (
   id text primary key,
@@ -16,20 +16,23 @@ create table if not exists quiz_results (
 
 alter table quiz_results enable row level security;
 
+drop policy if exists "Permitir inserção pública" on quiz_results;
 create policy "Permitir inserção pública"
   on quiz_results for insert with check (true);
 
+drop policy if exists "Permitir leitura pública" on quiz_results;
 create policy "Permitir leitura pública"
   on quiz_results for select using (true);
 
+drop policy if exists "Permitir exclusão pública" on quiz_results;
 create policy "Permitir exclusão pública"
   on quiz_results for delete using (true);
 
 create index if not exists idx_quiz_results_student_key on quiz_results(student_key);
 
--- Se a tabela já existir, executar apenas:
--- alter table quiz_results add column if not exists student_key text;
--- update quiz_results set student_key = lower(trim(name)) where student_key is null;
-
--- Atualização em tempo real no dashboard (opcional)
-alter publication supabase_realtime add table quiz_results;
+do $$
+begin
+  alter publication supabase_realtime add table quiz_results;
+exception
+  when duplicate_object then null;
+end $$;
