@@ -12,11 +12,22 @@ quiz-technologie-ia/
 │   ├── quiz.js      — logique du quiz
 │   ├── results.js   — note et corrigé
 │   └── main.js      — navigation
+├── desempenho-institucional/   — dashboard prof (même site)
+│   ├── index.html
+│   ├── css/style.css
+│   └── js/
 ├── imagem/
 ├── index.html
 ├── manifest.json
 └── robots.txt
 ```
+
+## Dashboard institutionnel
+
+- **Quiz (élève):** `/`
+- **Desempenho (professeur):** `/desempenho-institucional/`
+
+Les deux partagent les résultats via `localStorage` sur le même appareil/navigateur.
 
 ## Lancer localement
 
