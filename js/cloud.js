@@ -215,6 +215,7 @@ async function syncResultToCloud(entry) {
           answers: entry.answers || {},
           attempts_history: history,
           updated_at: now
+          // name não é atualizado — mantém o nome original registrado
         })
         .eq('id', merged.primary.id);
 

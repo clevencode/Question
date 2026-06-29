@@ -56,13 +56,15 @@ function renderResultsUI({ score, answersMap }) {
   }
 }
 
-function showResults() {
+async function showResults() {
   clearAdvanceTimeout();
   viewingHistoryId = null;
 
   const score = calculateScore();
   const grade = getGradeLabel(score.percent);
-  const name = formatStudentName(userName) || 'Étudiant·e';
+  let name = formatStudentName(userName) || 'Étudiant·e';
+  name = await resolveCanonicalStudentName(name);
+  userName = name;
 
   const entry = HistoryManager.createEntry({
     name,
@@ -72,7 +74,7 @@ function showResults() {
   });
 
   HistoryManager.add(entry);
-  syncResultToCloud(entry);
+  await syncResultToCloud(entry);
   updateHistoryLink(name);
 
   showScreen('results-screen', {

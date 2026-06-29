@@ -1,15 +1,15 @@
 // dashboard.js — Painel institucional (1 aluno = 1 registro por nome)
 
 function buildStudentSummary(entry) {
-  const attempts = expandAttempts(entry);
-  const best = attempts.reduce((max, a) => Math.max(max, a.percent), 0);
-  const latest = attempts[0] || entry;
+  const attemptCount = entry.attemptsHistory?.length || 1;
 
   return {
     name: entry.name?.trim() || 'Sans nom',
-    attempts,
-    best,
-    latest: { ...latest, name: entry.name }
+    attemptCount,
+    score: entry.percent,
+    correct: entry.correct,
+    total: entry.total,
+    modifiedAt: entry.date
   };
 }
 
@@ -21,13 +21,13 @@ function groupByStudent(entries) {
 
 function getStats(entries) {
   const students = groupByStudent(entries);
-  const allAttempts = students.flatMap(s => s.attempts);
-  const avg = allAttempts.length
-    ? Math.round(allAttempts.reduce((s, a) => s + a.percent, 0) / allAttempts.length)
+  const totalAttempts = students.reduce((sum, s) => sum + s.attemptCount, 0);
+  const avg = students.length
+    ? Math.round(students.reduce((sum, s) => sum + s.score, 0) / students.length)
     : 0;
 
   return {
-    totalAttempts: allAttempts.length,
+    totalAttempts,
     totalStudents: students.length,
     average: avg
   };
@@ -62,45 +62,35 @@ function renderStudents(entries) {
 
   empty?.classList.add('hidden');
 
-  container.innerHTML = students.map(student => {
-    const latest = student.latest;
-    const count = student.attempts.length;
-
-    return `
-      <article class="student-card">
-        <header class="student-card__header">
-          <h3 class="student-card__name">${student.name}</h3>
-          <span class="student-card__attempts">${count} tentative${count > 1 ? 's' : ''}</span>
-        </header>
-        <div class="student-card__scores">
-          <div class="student-card__metric">
-            <span class="student-card__label">Dernier score</span>
-            <span class="student-card__value student-card__value--blue">${latest.percent}%</span>
-            <span class="student-card__sub">${latest.correct}/${latest.total} correctes</span>
-          </div>
-          <div class="student-card__metric">
-            <span class="student-card__label">Meilleur score</span>
-            <span class="student-card__value">${student.best}%</span>
-          </div>
-          <div class="student-card__metric">
-            <span class="student-card__label">Dernière tentative</span>
-            <span class="student-card__date">${formatDate(latest.date)}</span>
-          </div>
+  container.innerHTML = students.map(student => `
+    <article class="student-card">
+      <header class="student-card__header">
+        <h3 class="student-card__name">${student.name}</h3>
+        <span class="student-card__attempts">${student.attemptCount} tentative${student.attemptCount > 1 ? 's' : ''}</span>
+      </header>
+      <div class="student-card__scores">
+        <div class="student-card__metric">
+          <span class="student-card__label">Score</span>
+          <span class="student-card__value student-card__value--blue">${student.score}%</span>
+          <span class="student-card__sub">${student.correct}/${student.total} correctes</span>
         </div>
-      </article>`;
-  }).join('');
+        <div class="student-card__metric">
+          <span class="student-card__label">Modifié</span>
+          <span class="student-card__date">${formatDate(student.modifiedAt)}</span>
+        </div>
+      </div>
+    </article>
+  `).join('');
 }
 
 function renderAttempts(entries) {
   const tbody = document.getElementById('attempts-body');
   const tableWrap = document.getElementById('attempts-table-wrap');
-  const allAttempts = groupByStudent(entries).flatMap(s =>
-    s.attempts.map(a => ({ ...a, name: s.name }))
-  );
+  const students = groupByStudent(entries);
 
   if (!tbody) return;
 
-  if (allAttempts.length === 0) {
+  if (students.length === 0) {
     tbody.innerHTML = '';
     tableWrap?.classList.add('hidden');
     return;
@@ -108,12 +98,12 @@ function renderAttempts(entries) {
 
   tableWrap?.classList.remove('hidden');
 
-  tbody.innerHTML = allAttempts.map(entry => `
+  tbody.innerHTML = students.map(student => `
     <tr>
-      <td>${entry.name}</td>
-      <td><strong>${entry.percent}%</strong></td>
-      <td>${entry.correct}/${entry.total}</td>
-      <td>${formatDate(entry.date)}</td>
+      <td>${student.name}</td>
+      <td><strong>${student.score}%</strong></td>
+      <td>${student.correct}/${student.total}</td>
+      <td>${formatDate(student.modifiedAt)}</td>
     </tr>
   `).join('');
 }
@@ -129,7 +119,7 @@ async function refreshDashboard() {
     renderAttempts(entries);
     setStatus(
       `Synchronisé — ${stats.totalStudents} élève${stats.totalStudents !== 1 ? 's' : ''}, ` +
-      `${stats.totalAttempts} tentative${stats.totalAttempts !== 1 ? 's' : ''} (par nom)`
+      `${stats.totalAttempts} tentative${stats.totalAttempts !== 1 ? 's' : ''}`
     );
   } catch (error) {
     renderStats([]);
