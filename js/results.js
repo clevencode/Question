@@ -172,9 +172,3 @@ async function redoHistoryEntry(id) {
   launchQuiz(entry.name);
 }
 
-function clearAllHistory() {
-  if (!window.confirm('Effacer tout l\'historique ? Cette action est irréversible.')) return;
-  HistoryManager.clear();
-  updateHistoryLink();
-  renderHistoryScreen();
-}
