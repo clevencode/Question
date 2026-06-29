@@ -29,20 +29,22 @@
         <span class="nav__tag">8 questions · V/F</span>
     </nav>
 
-    <ol class="stepper" aria-label="Étapes du parcours">
-        <li class="stepper__item stepper__item--active" data-step="intro" aria-current="step">
-            <span class="stepper__num">1</span>
-            <span class="stepper__label">Lecture</span>
-        </li>
-        <li class="stepper__item" data-step="quiz">
-            <span class="stepper__num">2</span>
-            <span class="stepper__label">Quiz</span>
-        </li>
-        <li class="stepper__item" data-step="results">
-            <span class="stepper__num">3</span>
-            <span class="stepper__label">Résultat</span>
-        </li>
-    </ol>
+    <nav class="stepper" aria-label="Étapes du parcours">
+        <ol class="stepper__list">
+            <li class="stepper__item stepper__item--active" data-step="intro" aria-current="step">
+                <span class="stepper__marker"><span class="stepper__num">1</span></span>
+                <span class="stepper__label">Lecture</span>
+            </li>
+            <li class="stepper__item" data-step="quiz">
+                <span class="stepper__marker"><span class="stepper__num">2</span></span>
+                <span class="stepper__label">Quiz</span>
+            </li>
+            <li class="stepper__item" data-step="results">
+                <span class="stepper__marker"><span class="stepper__num">3</span></span>
+                <span class="stepper__label">Résultat</span>
+            </li>
+        </ol>
+    </nav>
 
     <main id="app-main" class="app-shell">
 

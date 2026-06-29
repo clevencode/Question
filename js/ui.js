@@ -18,13 +18,26 @@ function focusFirst(container) {
 
 function updateStepper(step) {
   const index = STEPS.indexOf(step);
-  document.querySelectorAll('[data-step]').forEach(item => {
+
+  document.querySelectorAll('.stepper__item[data-step]').forEach(item => {
     const itemIndex = STEPS.indexOf(item.dataset.step);
-    const isActive = itemIndex === index;
-    const isDone = itemIndex < index;
-    item.classList.toggle('stepper__item--active', isActive);
-    item.classList.toggle('stepper__item--done', isDone);
-    item.setAttribute('aria-current', isActive ? 'step' : 'false');
+    const numEl = item.querySelector('.stepper__num');
+
+    item.classList.remove('stepper__item--active', 'stepper__item--done', 'stepper__item--pending');
+
+    if (itemIndex < index) {
+      item.classList.add('stepper__item--done');
+      if (numEl) numEl.textContent = '✓';
+      item.setAttribute('aria-current', 'false');
+    } else if (itemIndex === index) {
+      item.classList.add('stepper__item--active');
+      if (numEl) numEl.textContent = String(itemIndex + 1);
+      item.setAttribute('aria-current', 'step');
+    } else {
+      item.classList.add('stepper__item--pending');
+      if (numEl) numEl.textContent = String(itemIndex + 1);
+      item.setAttribute('aria-current', 'false');
+    }
   });
 }
 

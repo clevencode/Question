@@ -75,49 +75,117 @@ body {
 
 /* ── Stepper ── */
 .stepper {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  list-style: none;
-  padding: 16px 24px 0;
+  padding: 20px 24px 8px;
   max-width: 720px;
   margin: 0 auto;
+  border-bottom: 1px solid var(--black);
+}
+
+.stepper__list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .stepper__item {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  border: 1px solid var(--black);
-  font-size: 0.7rem;
-  font-family: var(--font-mono);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--black);
-  transition: border-color var(--transition), color var(--transition);
+  position: relative;
+  text-align: center;
+}
+
+.stepper__item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 18px);
+  width: calc(100% - 36px);
+  height: 2px;
+  background: var(--black);
+  z-index: 0;
+  transition: background var(--transition);
+}
+
+.stepper__item--done:not(:last-child)::after {
+  background: var(--blue);
+}
+
+.stepper__marker {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--black);
+  background: var(--white);
+  transition: border-color var(--transition), background var(--transition), color var(--transition);
 }
 
 .stepper__num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border: 1px solid currentColor;
-  font-size: 0.65rem;
-}
-
-.stepper__item--active {
-  border-color: var(--blue);
-  color: var(--blue);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   font-weight: 600;
+  line-height: 1;
+  color: var(--black);
+  transition: color var(--transition);
 }
 
-.stepper__item--done {
+.stepper__label {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--black);
+  transition: color var(--transition), font-weight var(--transition);
+}
+
+/* En attente */
+.stepper__item--pending .stepper__marker {
+  border-color: var(--black);
+  background: var(--white);
+}
+
+.stepper__item--pending .stepper__label {
+  color: var(--black);
+  opacity: 0.45;
+}
+
+/* Étape en cours */
+.stepper__item--active .stepper__marker {
   border-color: var(--blue);
   background: var(--blue);
+  box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--blue);
+}
+
+.stepper__item--active .stepper__num {
   color: var(--white);
+}
+
+.stepper__item--active .stepper__label {
+  color: var(--blue);
+  font-weight: 700;
+}
+
+/* Étape terminée */
+.stepper__item--done .stepper__marker {
+  border-color: var(--blue);
+  background: var(--blue);
+}
+
+.stepper__item--done .stepper__num {
+  color: var(--white);
+  font-size: 0.85rem;
+}
+
+.stepper__item--done .stepper__label {
+  color: var(--blue);
+  font-weight: 600;
 }
 
 /* ── Nav ── */
@@ -667,9 +735,10 @@ body {
 .results-footer { margin-top: 40px; }
 
 /* ── Responsive ── */
-@media (max-width: 600px) {
-  .stepper { flex-wrap: wrap; }
-  .stepper__label { display: none; }
+@media (max-width: 480px) {
+  .stepper__label { font-size: 0.58rem; }
+  .stepper__marker { width: 28px; height: 28px; }
+  .stepper__item:not(:last-child)::after { top: 13px; }
 }
 
 @media (max-width: 480px) {
