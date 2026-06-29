@@ -324,10 +324,20 @@ async function clearResultsFromCloud() {
     throw new Error('Supabase não configurado.');
   }
 
+  const { data: rows, error: selectError } = await sb
+    .from('quiz_results')
+    .select('id');
+
+  if (selectError) {
+    throw new Error(`Erreur Supabase : ${selectError.message}`);
+  }
+
+  if (!rows?.length) return;
+
   const { error } = await sb
     .from('quiz_results')
     .delete()
-    .neq('id', '');
+    .in('id', rows.map(row => row.id));
 
   if (error) {
     throw new Error(`Erreur Supabase : ${error.message}`);

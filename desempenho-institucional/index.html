@@ -45,7 +45,7 @@
                 <a href="../" class="nav__link">← Quiz</a>
                 <button type="button" id="btn-refresh" class="nav__link">Actualiser</button>
                 <button type="button" id="btn-logout" class="nav__link">Déconnexion</button>
-                <button type="button" id="btn-clear" class="nav__link nav__link--danger">Effacer</button>
+                <button type="button" id="btn-clear" class="nav__link nav__link--danger">Effacer tout</button>
             </div>
         </nav>
 
@@ -80,7 +80,12 @@
 
             <div id="students-list" class="students-list"></div>
 
-            <h2 class="section-title section-title--spaced">Historique détaillé</h2>
+            <div class="section-header section-header--spaced">
+                <h2 class="section-title">Historique détaillé</h2>
+                <button type="button" id="btn-clear-table" class="clear-all-btn">
+                    Effacer tout l'historique
+                </button>
+            </div>
             <div id="attempts-table-wrap" class="table-wrap hidden">
                 <table class="table">
                     <thead>

@@ -154,13 +154,17 @@ async function refreshDashboard() {
 }
 
 async function clearAllResults() {
-  if (!window.confirm('Effacer tous les résultats ?')) return;
+  const confirmed = window.confirm(
+    'Effacer tout l\'historique de tous les appareils ?\n\nCette action est irréversible.'
+  );
+  if (!confirmed) return;
 
-  setStatus('Suppression…');
+  setStatus('Suppression de tous les résultats…');
 
   try {
     await HistoryStore.clear();
     await refreshDashboard();
+    setStatus('Historique effacé — tous les appareils');
   } catch (error) {
     setStatus(error.message || 'Erreur lors de la suppression', true);
   }
@@ -173,6 +177,7 @@ function initProfessorDashboard() {
   refreshDashboard();
   document.getElementById('btn-refresh')?.addEventListener('click', refreshDashboard);
   document.getElementById('btn-clear')?.addEventListener('click', clearAllResults);
+  document.getElementById('btn-clear-table')?.addEventListener('click', clearAllResults);
   subscribeToResultsChanges(() => refreshDashboard());
   setInterval(refreshDashboard, 30000);
 }
