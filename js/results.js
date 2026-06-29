@@ -25,18 +25,24 @@ function buildGabaritoHtml(answersMap = answers) {
     const userLabel = userAnswer === true ? 'Vrai' : userAnswer === false ? 'Faux' : '—';
     const correctLabel = q.answer ? 'Vrai' : 'Faux';
 
-    const answerLine = isCorrect
-      ? `<p class="gabarito-item__result gabarito-item__result--ok">${correctLabel}</p>`
-      : `<p class="gabarito-item__result gabarito-item__result--ko">Vous : ${userLabel} · Correct : ${correctLabel}</p>`;
-
     return `
       <article class="gabarito-item ${isCorrect ? 'gabarito-item--correct' : 'gabarito-item--wrong'}" role="listitem">
-        <p class="gabarito-item__question">
-          <span class="gabarito-item__num">${String(i + 1).padStart(2, '0')}</span>
-          ${q.text}
-        </p>
-        ${answerLine}
-        <blockquote class="gabarito-item__source">${q.explanation}</blockquote>
+        <header class="gabarito-item__header">
+          <span class="gabarito-item__num">Question ${String(i + 1).padStart(2, '0')}</span>
+          <span class="gabarito-item__badge">${isCorrect ? 'Correct' : 'Incorrect'}</span>
+        </header>
+        <p class="gabarito-item__question">${q.text}</p>
+        <dl class="gabarito-item__answers">
+          <div class="gabarito-item__answer-row gabarito-item__answer-row--user">
+            <dt>Votre réponse</dt>
+            <dd>${userLabel}</dd>
+          </div>
+          <div class="gabarito-item__answer-row gabarito-item__answer-row--expected">
+            <dt>Réponse correcte</dt>
+            <dd>${correctLabel}</dd>
+          </div>
+        </dl>
+        <p class="gabarito-item__explanation">${q.explanation}</p>
       </article>`;
   }).join('');
 }
@@ -68,7 +74,7 @@ function showResults() {
 
   if (wrongEl) {
     if (score.wrong > 0) {
-      wrongEl.textContent = `${score.wrong} erreur${score.wrong > 1 ? 's' : ''}`;
+      wrongEl.textContent = `${score.wrong} erreur${score.wrong > 1 ? 's' : ''} — consultez le corrigé ci-dessous.`;
       wrongEl.classList.remove('hidden');
     } else {
       wrongEl.classList.add('hidden');
