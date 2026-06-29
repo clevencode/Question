@@ -42,14 +42,19 @@ const HistoryManager = {
     return this.load().find(e => e.id === id) || null;
   },
 
-  getByStudentKey(studentKey) {
-    return this.load().filter(e => (e.studentKey || normalizeStudentKey(e.name)) === studentKey);
+  getByStudentKey(studentKey, deviceKey = getDeviceKey()) {
+    return this.load().filter(e => {
+      const sameStudent = (e.studentKey || normalizeStudentKey(e.name)) === studentKey;
+      const sameDevice = (e.deviceKey || getDeviceKey()) === deviceKey;
+      return sameStudent && sameDevice;
+    });
   },
 
   async loadForStudent(name) {
     const studentKey = normalizeStudentKey(name);
+    const deviceKey = getDeviceKey();
     const cloudEntries = await fetchResultsByStudentName(name);
-    const localEntries = this.getByStudentKey(studentKey);
+    const localEntries = this.getByStudentKey(studentKey, deviceKey);
     const merged = new Map();
 
     [...cloudEntries, ...localEntries].forEach(entry => {
@@ -61,9 +66,11 @@ const HistoryManager = {
   },
 
   createEntry({ name, score, grade, answersMap }) {
+    const deviceKey = getDeviceKey();
     const studentKey = normalizeStudentKey(name);
     return {
-      id: `${studentKey}-${Date.now()}`,
+      id: `${deviceKey}::${studentKey}-${Date.now()}`,
+      deviceKey,
       studentKey,
       name,
       percent: score.percent,

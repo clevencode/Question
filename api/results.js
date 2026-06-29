@@ -21,6 +21,10 @@ function normalizeStudentKey(name) {
     .replace(/\p{Diacritic}/gu, '');
 }
 
+function buildRecordId(deviceKey, studentKey) {
+  return `${deviceKey}::${studentKey}`;
+}
+
 function toAttemptRecord(entry) {
   return {
     id: entry.id,
@@ -37,6 +41,7 @@ function toAttemptRecord(entry) {
 function fromRow(row) {
   return {
     id: row.id,
+    deviceKey: row.device_key || 'legacy',
     studentKey: row.student_key || normalizeStudentKey(row.name),
     name: row.name,
     percent: row.percent,
@@ -77,13 +82,16 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Dados inválidos' });
       }
 
+      const deviceKey = entry.deviceKey || 'unknown-device';
       const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
+      const recordId = buildRecordId(deviceKey, studentKey);
       const attempt = toAttemptRecord(entry);
       const now = entry.date || new Date().toISOString();
 
       const { data: existing, error: fetchError } = await supabase
         .from('quiz_results')
         .select('*')
+        .eq('device_key', deviceKey)
         .eq('student_key', studentKey)
         .maybeSingle();
 
@@ -107,6 +115,7 @@ module.exports = async (req, res) => {
             attempts_history: history,
             updated_at: now
           })
+          .eq('device_key', deviceKey)
           .eq('student_key', studentKey);
 
         if (error) return res.status(500).json({ error: error.message });
@@ -114,7 +123,8 @@ module.exports = async (req, res) => {
       }
 
       const { error } = await supabase.from('quiz_results').insert({
-        id: studentKey,
+        id: recordId,
+        device_key: deviceKey,
         student_key: studentKey,
         name: entry.name,
         percent: entry.percent,

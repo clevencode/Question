@@ -1,21 +1,39 @@
-// dashboard.js — Painel institucional (1 aluno = 1 registro, histórico de tentativas)
-
-function buildStudentSummary(entry) {
-  const attempts = expandAttempts(entry);
-  const best = attempts.reduce((max, a) => Math.max(max, a.percent), 0);
-  const latest = attempts[0] || entry;
-
-  return {
-    name: entry.name?.trim() || 'Sans nom',
-    attempts,
-    best,
-    latest: { ...latest, name: entry.name }
-  };
-}
+// dashboard.js — Painel: dispositivo + nome (mesmo aparelho, nome diferente = outro usuário)
 
 function groupByStudent(entries) {
-  return entries
-    .map(buildStudentSummary)
+  const map = new Map();
+
+  entries.forEach(entry => {
+    const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
+    const name = entry.name?.trim() || 'Sans nom';
+
+    if (!map.has(studentKey)) {
+      map.set(studentKey, { name, attempts: [], best: 0, latest: null, deviceCount: 0, devices: new Set() });
+    }
+
+    const student = map.get(studentKey);
+    student.devices.add(entry.deviceKey || 'legacy');
+
+    expandAttempts(entry).forEach(attempt => {
+      student.attempts.push({
+        ...attempt,
+        name,
+        deviceKey: entry.deviceKey,
+        deviceLabel: formatDeviceLabel(entry.deviceKey)
+      });
+      student.best = Math.max(student.best, attempt.percent);
+
+      if (!student.latest || new Date(attempt.date) > new Date(student.latest.date)) {
+        student.latest = { ...attempt, name, deviceLabel: formatDeviceLabel(entry.deviceKey) };
+      }
+    });
+  });
+
+  return Array.from(map.values())
+    .map(student => ({
+      ...student,
+      deviceCount: student.devices.size
+    }))
     .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 }
 
@@ -83,8 +101,9 @@ function renderStudents(entries) {
             <span class="student-card__value">${student.best}%</span>
           </div>
           <div class="student-card__metric">
-            <span class="student-card__label">Dernière tentative</span>
-            <span class="student-card__date">${formatDate(latest.date)}</span>
+            <span class="student-card__label">Appareils</span>
+            <span class="student-card__value">${student.deviceCount}</span>
+            <span class="student-card__sub">Dernier : ${latest.deviceLabel || '—'}</span>
           </div>
         </div>
       </article>`;
@@ -94,9 +113,9 @@ function renderStudents(entries) {
 function renderAttempts(entries) {
   const tbody = document.getElementById('attempts-body');
   const tableWrap = document.getElementById('attempts-table-wrap');
-  const allAttempts = groupByStudent(entries).flatMap(s =>
-    s.attempts.map(a => ({ ...a, name: s.name }))
-  );
+  const allAttempts = groupByStudent(entries)
+    .flatMap(s => s.attempts)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
 
   if (!tbody) return;
 
@@ -111,6 +130,7 @@ function renderAttempts(entries) {
   tbody.innerHTML = allAttempts.map(entry => `
     <tr>
       <td>${entry.name}</td>
+      <td>${entry.deviceLabel || '—'}</td>
       <td><strong>${entry.percent}%</strong></td>
       <td>${entry.correct}/${entry.total}</td>
       <td>${formatDate(entry.date)}</td>
@@ -129,7 +149,7 @@ async function refreshDashboard() {
     renderAttempts(entries);
     setStatus(
       `Synchronisé — ${stats.totalStudents} élève${stats.totalStudents !== 1 ? 's' : ''}, ` +
-      `${stats.totalAttempts} tentative${stats.totalAttempts !== 1 ? 's' : ''} (par nom)`
+      `${stats.totalAttempts} tentative${stats.totalAttempts !== 1 ? 's' : ''} (appareil + nom)`
     );
   } catch (error) {
     renderStats([]);
