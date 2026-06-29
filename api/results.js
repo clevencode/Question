@@ -14,8 +14,15 @@ function getSupabase() {
   });
 }
 
+function formatStudentName(name) {
+  return (name?.trim() || '').replace(/\s+/g, ' ');
+}
+
 function normalizeStudentKey(name) {
-  return (name?.trim() || 'sans nom')
+  const formatted = formatStudentName(name);
+  if (!formatted) return 'sans nom';
+
+  return formatted
     .toLowerCase()
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '');

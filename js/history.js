@@ -61,11 +61,12 @@ const HistoryManager = {
   },
 
   createEntry({ name, score, grade, answersMap }) {
-    const studentKey = normalizeStudentKey(name);
+    const displayName = formatStudentName(name);
+    const studentKey = normalizeStudentKey(displayName);
     return {
       id: `${studentKey}-${Date.now()}`,
       studentKey,
-      name,
+      name: displayName,
       percent: score.percent,
       correct: score.correct,
       total: score.total,

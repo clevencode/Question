@@ -62,7 +62,7 @@ function showResults() {
 
   const score = calculateScore();
   const grade = getGradeLabel(score.percent);
-  const name = userName.trim() || 'Étudiant·e';
+  const name = formatStudentName(userName) || 'Étudiant·e';
 
   const entry = HistoryManager.createEntry({
     name,

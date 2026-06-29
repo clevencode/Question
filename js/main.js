@@ -40,7 +40,7 @@ function showNameError() {
 }
 
 function launchQuiz(name) {
-  userName = name.trim();
+  userName = formatStudentName(name);
   currentQuestionIndex = 0;
   answers = {};
   clearAdvanceTimeout();
@@ -59,14 +59,17 @@ function launchQuiz(name) {
   renderQuestion();
 }
 
-function startQuiz() {
+async function startQuiz() {
   const nameInput = document.getElementById('user-name');
-  const name = nameInput?.value.trim() || userName.trim() || '';
+  let name = formatStudentName(nameInput?.value || userName || '');
 
   if (!name) {
     showNameError();
     return;
   }
+
+  name = await resolveCanonicalStudentName(name);
+  if (nameInput) nameInput.value = name;
 
   clearNameError();
   launchQuiz(name);
