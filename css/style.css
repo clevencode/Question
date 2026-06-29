@@ -577,21 +577,6 @@ body {
   cursor: wait;
 }
 
-.keyboard-hint {
-  margin-top: 16px;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--black);
-  text-align: center;
-}
-
-.keyboard-hint kbd {
-  display: inline-block;
-  padding: 2px 6px;
-  border: 1px solid var(--black);
-  font-size: 0.65rem;
-}
-
 .quiz-nav {
   display: flex;
   margin-top: 24px;
