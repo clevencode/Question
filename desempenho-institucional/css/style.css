@@ -95,6 +95,10 @@ body {
   color: var(--blue);
 }
 
+.sync-status--error {
+  color: var(--red);
+}
+
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

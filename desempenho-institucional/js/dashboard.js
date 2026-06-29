@@ -1,4 +1,4 @@
-// dashboard.js — Painel /admin (mesmo site, localStorage)
+// dashboard.js — Painel institucional (nuvem)
 
 function groupByStudent(entries) {
   const map = new Map();
@@ -32,9 +32,11 @@ function getStats(entries) {
   };
 }
 
-function setStatus(message) {
+function setStatus(message, isError = false) {
   const el = document.getElementById('sync-status');
-  if (el) el.textContent = message;
+  if (!el) return;
+  el.textContent = message;
+  el.classList.toggle('sync-status--error', isError);
 }
 
 function renderStats(entries) {
@@ -112,18 +114,34 @@ function renderAttempts(entries) {
   `).join('');
 }
 
-function refreshDashboard() {
-  const entries = HistoryStore.fetchAll();
-  renderStats(entries);
-  renderStudents(entries);
-  renderAttempts(entries);
-  setStatus(`${entries.length} résultat${entries.length !== 1 ? 's' : ''} sur cet appareil`);
+async function refreshDashboard() {
+  setStatus('Synchronisation…');
+
+  try {
+    const entries = await HistoryStore.fetchAll();
+    renderStats(entries);
+    renderStudents(entries);
+    renderAttempts(entries);
+    setStatus(`Synchronisé — ${entries.length} résultat${entries.length !== 1 ? 's' : ''} (tous appareils)`);
+  } catch (error) {
+    renderStats([]);
+    renderStudents([]);
+    renderAttempts([]);
+    setStatus(error.message || 'Erreur de synchronisation', true);
+  }
 }
 
-function clearAllResults() {
-  if (!window.confirm('Effacer tous les résultats de cet appareil ?')) return;
-  HistoryStore.clear();
-  refreshDashboard();
+async function clearAllResults() {
+  if (!window.confirm('Effacer tous les résultats de tous les appareils ?')) return;
+
+  setStatus('Suppression…');
+
+  try {
+    await HistoryStore.clear();
+    await refreshDashboard();
+  } catch (error) {
+    setStatus(error.message || 'Erreur lors de la suppression', true);
+  }
 }
 
 function initProfessorDashboard() {
@@ -133,10 +151,7 @@ function initProfessorDashboard() {
   refreshDashboard();
   document.getElementById('btn-refresh')?.addEventListener('click', refreshDashboard);
   document.getElementById('btn-clear')?.addEventListener('click', clearAllResults);
-
-  window.addEventListener('storage', e => {
-    if (e.key === HISTORY_KEY) refreshDashboard();
-  });
+  setInterval(refreshDashboard, 30000);
 }
 
 window.initProfessorDashboard = initProfessorDashboard;

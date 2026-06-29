@@ -72,6 +72,7 @@ function showResults() {
   });
 
   HistoryManager.add(entry);
+  syncResultToCloud(entry);
   updateHistoryLink();
 
   showScreen('results-screen', {

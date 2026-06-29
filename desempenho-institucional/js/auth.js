@@ -11,18 +11,23 @@ const ProfessorAuth = {
 
   isAuthenticated() {
     try {
-      return sessionStorage.getItem(ProfessorAuthConfig.sessionKey) === ProfessorAuthConfig.sessionToken;
+      return sessionStorage.getItem(ProfessorAuthConfig.sessionKey) === ProfessorAuthConfig.sessionToken
+        && !!sessionStorage.getItem(ProfessorAuthConfig.passwordKey);
     } catch {
       return false;
     }
   },
 
-  login() {
+  login(password) {
     sessionStorage.setItem(ProfessorAuthConfig.sessionKey, ProfessorAuthConfig.sessionToken);
+    if (password) {
+      sessionStorage.setItem(ProfessorAuthConfig.passwordKey, password);
+    }
   },
 
   logout() {
     sessionStorage.removeItem(ProfessorAuthConfig.sessionKey);
+    sessionStorage.removeItem(ProfessorAuthConfig.passwordKey);
   },
 
   showApp() {
@@ -68,7 +73,7 @@ const ProfessorAuth = {
         return;
       }
 
-      this.login();
+      this.login(password);
       if (input) input.value = '';
       this.showApp();
     });

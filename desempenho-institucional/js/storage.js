@@ -1,20 +1,8 @@
-// storage.js — Lê o histórico do quiz (mesmo localStorage)
-
-const HISTORY_KEY = 'techIaQuizHistory';
+// storage.js — Resultados na nuvem (todos os dispositivos)
 
 const HistoryStore = {
-  fetchAll() {
-    try {
-      const raw = localStorage.getItem(HISTORY_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
-  },
-
-  clear() {
-    localStorage.removeItem(HISTORY_KEY);
-  }
+  fetchAll: fetchResultsFromCloud,
+  clear: clearResultsFromCloud
 };
 
 function formatDate(iso) {
