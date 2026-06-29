@@ -305,7 +305,8 @@ async function fetchStudentSummary(name) {
       wrong: student.wrong,
       grade: student.grade,
       answers: student.answers,
-      date: student.date
+      date: student.date,
+      attemptCount: merged.attempts.length || 1
     };
   } catch (error) {
     console.warn('Cloud fetch by name failed:', error.message);

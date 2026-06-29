@@ -31,7 +31,8 @@ const HistoryManager = {
       ...entry,
       id: key,
       studentKey: key,
-      name: index >= 0 ? history[index].name : entry.name
+      name: index >= 0 ? history[index].name : entry.name,
+      attemptCount: entry.attemptCount ?? (index >= 0 ? history[index].attemptCount : 1)
     };
 
     if (index >= 0) {
@@ -101,11 +102,16 @@ const HistoryManager = {
 
     if (cloudEntry && localEntry) {
       const newer = new Date(cloudEntry.date) > new Date(localEntry.date) ? cloudEntry : localEntry;
+      const attemptCount = Math.max(
+        cloudEntry.attemptCount || 1,
+        localEntry.attemptCount || 1
+      );
       return [{
         ...newer,
         id: studentKey,
         studentKey,
-        name: localEntry.name || cloudEntry.name
+        name: localEntry.name || cloudEntry.name,
+        attemptCount
       }];
     }
 
@@ -116,6 +122,9 @@ const HistoryManager = {
   createEntry({ name, score, grade, answersMap }) {
     const displayName = formatStudentName(name);
     const studentKey = normalizeStudentKey(displayName);
+    const existing = this.getStudentEntry(studentKey);
+    const attemptCount = (existing?.attemptCount || 0) + 1;
+
     return {
       id: studentKey,
       studentKey,
@@ -126,7 +135,8 @@ const HistoryManager = {
       wrong: score.wrong,
       grade,
       answers: { ...answersMap },
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      attemptCount
     };
   }
 };

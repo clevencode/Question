@@ -61,6 +61,7 @@ function launchQuiz(name) {
 
 async function startQuiz() {
   const nameInput = document.getElementById('user-name');
+  const submitBtn = document.querySelector('.start-form button[type="submit"]');
   let name = formatStudentName(nameInput?.value || userName || '');
 
   if (!name) {
@@ -68,11 +69,16 @@ async function startQuiz() {
     return;
   }
 
-  name = await resolveCanonicalStudentName(name);
-  if (nameInput) nameInput.value = name;
+  setButtonLoading(submitBtn, true, 'Préparation…');
 
-  clearNameError();
-  launchQuiz(name);
+  try {
+    name = await resolveCanonicalStudentName(name);
+    if (nameInput) nameInput.value = name;
+    clearNameError();
+    launchQuiz(name);
+  } finally {
+    setButtonLoading(submitBtn, false);
+  }
 }
 
 function restartQuiz() {

@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <a href="#dashboard-main" class="skip-link">Aller au contenu principal</a>
+    <div id="live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
     <section id="auth-gate" class="auth-gate" aria-labelledby="auth-title">
         <div class="auth-card">
@@ -48,12 +50,13 @@
             </div>
         </nav>
 
-        <main class="shell">
+        <main id="dashboard-main" class="shell">
             <header class="hero">
                 <span class="hero__label">Suivi des performances</span>
                 <h1 class="hero__title">Technologie &amp; IA</h1>
-                <p class="hero__subtitle">Résultats regroupés par <strong>nom de l'élève</strong>, quel que soit l'appareil utilisé.</p>
-                <p id="sync-status" class="sync-status">Chargement…</p>
+                <p class="hero__subtitle">Résultats regroupés par <strong>nom de l'élève</strong>, quel que soit l'appareil utilisé. Même nom = mise à jour du score, pas de doublon.</p>
+                <p class="hero__note">Lecture seule — les élèves gèrent leur historique depuis le quiz.</p>
+                <p id="sync-status" class="sync-status" role="status" aria-live="polite">Chargement…</p>
             </header>
 
             <section class="stats" aria-label="Statistiques globales">
@@ -82,6 +85,7 @@
             <h2 class="section-title section-title--spaced">Historique détaillé</h2>
             <div id="attempts-table-wrap" class="table-wrap hidden">
                 <table class="table">
+                    <caption class="table__caption">Dernière modification par élève — une ligne par nom</caption>
                     <thead>
                         <tr>
                             <th>Élève</th>

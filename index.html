@@ -76,7 +76,7 @@
                     aria-required="true"
                     aria-describedby="name-hint name-error"
                 >
-                <p id="name-hint" class="form-hint">Votre nom apparaîtra sur votre résultat final.</p>
+                <p id="name-hint" class="form-hint">Utilisez toujours le même nom : votre score sera mis à jour et synchronisé sur tous vos appareils.</p>
                 <p id="name-error" class="input-error hidden" role="alert">Veuillez entrer votre nom pour commencer le quiz.</p>
                 <button type="submit" class="btn btn--primary btn--block">
                     Commencer le quiz
@@ -137,8 +137,10 @@
 
         <!-- RESULTS -->
         <section id="results-screen" class="hidden" aria-labelledby="results-title">
+            <p id="results-context" class="results-context hidden" role="status"></p>
             <header class="results-header">
                 <h2 id="results-title" class="sr-only">Résultat</h2>
+                <p id="results-student" class="results-student hidden"></p>
                 <div class="score-ring-wrap" role="img" aria-labelledby="result-score result-detail">
                     <svg viewBox="0 0 120 120" aria-hidden="true">
                         <circle class="score-ring__bg" cx="60" cy="60" r="54"/>
@@ -147,16 +149,18 @@
                     <span id="result-score" class="score-ring__value">0%</span>
                 </div>
                 <p id="result-detail" class="result-detail"></p>
+                <p id="result-grade" class="result-grade"></p>
+                <p id="result-sync" class="result-sync hidden" role="status"></p>
             </header>
 
             <h3 class="gabarito-title">Corrigé explicatif</h3>
             <div id="gabarito-list" class="gabarito-list" role="list"></div>
 
             <footer class="results-footer">
-                <button type="button" class="btn btn--primary btn--block" onclick="restartQuiz()">
+                <button type="button" id="results-primary-btn" class="btn btn--primary btn--block" onclick="restartQuiz()">
                     Recommencer le quiz
                 </button>
-                <button type="button" class="btn btn--text" onclick="showHistory()">
+                <button type="button" id="results-secondary-btn" class="btn btn--text" onclick="showHistory()">
                     Voir l'historique
                 </button>
             </footer>
@@ -166,11 +170,15 @@
         <section id="history-screen" class="hidden" aria-labelledby="history-title">
             <header class="history-header">
                 <h2 id="history-title" class="type-display history-title">Historique des résultats</h2>
-                <p class="history-subtitle">Consultez vos résultats ou refaites le quiz pour améliorer votre score.</p>
+                <p id="history-subtitle" class="history-subtitle">Consultez vos résultats ou refaites le quiz pour améliorer votre score.</p>
             </header>
 
-            <p id="history-empty" class="history-empty">Aucun résultat enregistré pour le moment.</p>
-            <div id="history-list" class="history-list" role="list"></div>
+            <div id="history-loading" class="history-loading hidden" aria-hidden="true">
+                <div class="skeleton skeleton--row"></div>
+                <div class="skeleton skeleton--row"></div>
+            </div>
+            <p id="history-empty" class="history-empty hidden">Aucun résultat enregistré. Terminez le quiz pour voir votre score ici.</p>
+            <div id="history-list" class="history-list" role="list" aria-busy="false"></div>
 
             <footer class="history-footer">
                 <button type="button" class="btn btn--outline btn--block" onclick="showIntro()">

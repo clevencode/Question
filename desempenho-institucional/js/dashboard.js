@@ -55,11 +55,19 @@ function getStats(entries) {
   };
 }
 
+function announce(message) {
+  const el = document.getElementById('live-region');
+  if (!el) return;
+  el.textContent = '';
+  requestAnimationFrame(() => { el.textContent = message; });
+}
+
 function setStatus(message, isError = false) {
   const el = document.getElementById('sync-status');
   if (!el) return;
   el.textContent = message;
   el.classList.toggle('sync-status--error', isError);
+  if (!isError) announce(message);
 }
 
 function renderStats(entries) {
@@ -133,7 +141,13 @@ function renderAttempts(entries) {
 }
 
 async function refreshDashboard() {
+  const refreshBtn = document.getElementById('btn-refresh');
   setStatus('Synchronisation…');
+  if (refreshBtn) {
+    refreshBtn.disabled = true;
+    refreshBtn.setAttribute('aria-busy', 'true');
+    refreshBtn.textContent = 'Actualisation…';
+  }
 
   try {
     const entries = await HistoryStore.fetchAll();
@@ -150,6 +164,13 @@ async function refreshDashboard() {
     renderStudents([]);
     renderAttempts([]);
     setStatus(error.message || 'Erreur de synchronisation', true);
+  } finally {
+    const refreshBtn = document.getElementById('btn-refresh');
+    if (refreshBtn) {
+      refreshBtn.disabled = false;
+      refreshBtn.removeAttribute('aria-busy');
+      refreshBtn.textContent = 'Actualiser';
+    }
   }
 }
 

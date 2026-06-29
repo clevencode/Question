@@ -1,6 +1,7 @@
 // ui.js — Utilitaires UI/UX partagés
 
 const STEPS = ['intro', 'quiz', 'results'];
+const AUXILIARY_SCREENS = ['history'];
 
 function announce(message) {
   const el = document.getElementById('live-region');
@@ -14,6 +15,10 @@ function focusFirst(container) {
     'input:not([disabled]), button:not([disabled]), [tabindex="0"]'
   );
   target?.focus();
+}
+
+function setStepperVisible(visible) {
+  document.querySelector('.stepper')?.classList.toggle('stepper--hidden', !visible);
 }
 
 function updateStepper(step) {
@@ -42,6 +47,29 @@ function updateStepper(step) {
   });
 }
 
+function setButtonLoading(button, loading, loadingLabel = 'Chargement…') {
+  if (!button) return;
+
+  if (loading) {
+    if (!button.dataset.originalLabel) {
+      button.dataset.originalLabel = button.textContent.trim();
+    }
+    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
+    button.classList.add('btn--loading');
+    button.textContent = loadingLabel;
+    return;
+  }
+
+  button.disabled = false;
+  button.removeAttribute('aria-busy');
+  button.classList.remove('btn--loading');
+  if (button.dataset.originalLabel) {
+    button.textContent = button.dataset.originalLabel;
+    delete button.dataset.originalLabel;
+  }
+}
+
 function showScreen(screenId, { announceMsg, focusSelector } = {}) {
   hideAllScreens();
   const screen = document.getElementById(screenId);
@@ -49,7 +77,10 @@ function showScreen(screenId, { announceMsg, focusSelector } = {}) {
   screen.classList.remove('hidden');
 
   const step = screenId.replace('-screen', '');
-  updateStepper(step);
+  const isAuxiliary = AUXILIARY_SCREENS.includes(step);
+
+  setStepperVisible(!isAuxiliary);
+  if (!isAuxiliary) updateStepper(step);
 
   if (announceMsg) announce(announceMsg);
   if (focusSelector) {
