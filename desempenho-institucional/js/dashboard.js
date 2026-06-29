@@ -1,33 +1,33 @@
-// dashboard.js — Painel institucional (nuvem)
+// dashboard.js — Painel institucional (1 aluno = 1 registro, histórico de tentativas)
+
+function buildStudentSummary(entry) {
+  const attempts = expandAttempts(entry);
+  const best = attempts.reduce((max, a) => Math.max(max, a.percent), 0);
+  const latest = attempts[0] || entry;
+
+  return {
+    name: entry.name?.trim() || 'Sans nom',
+    attempts,
+    best,
+    latest: { ...latest, name: entry.name }
+  };
+}
 
 function groupByStudent(entries) {
-  const map = new Map();
-
-  entries.forEach(entry => {
-    const key = entry.studentKey || normalizeStudentKey(entry.name);
-    const name = entry.name?.trim() || 'Sans nom';
-    if (!map.has(key)) {
-      map.set(key, { name, attempts: [], best: 0, latest: null });
-    }
-    const student = map.get(key);
-    student.attempts.push(entry);
-    student.best = Math.max(student.best, entry.percent);
-    if (!student.latest || new Date(entry.date) > new Date(student.latest.date)) {
-      student.latest = entry;
-    }
-  });
-
-  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  return entries
+    .map(buildStudentSummary)
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 }
 
 function getStats(entries) {
   const students = groupByStudent(entries);
-  const avg = entries.length
-    ? Math.round(entries.reduce((s, e) => s + e.percent, 0) / entries.length)
+  const allAttempts = students.flatMap(s => s.attempts);
+  const avg = allAttempts.length
+    ? Math.round(allAttempts.reduce((s, a) => s + a.percent, 0) / allAttempts.length)
     : 0;
 
   return {
-    totalAttempts: entries.length,
+    totalAttempts: allAttempts.length,
     totalStudents: students.length,
     average: avg
   };
@@ -94,10 +94,13 @@ function renderStudents(entries) {
 function renderAttempts(entries) {
   const tbody = document.getElementById('attempts-body');
   const tableWrap = document.getElementById('attempts-table-wrap');
+  const allAttempts = groupByStudent(entries).flatMap(s =>
+    s.attempts.map(a => ({ ...a, name: s.name }))
+  );
 
   if (!tbody) return;
 
-  if (entries.length === 0) {
+  if (allAttempts.length === 0) {
     tbody.innerHTML = '';
     tableWrap?.classList.add('hidden');
     return;
@@ -105,7 +108,7 @@ function renderAttempts(entries) {
 
   tableWrap?.classList.remove('hidden');
 
-  tbody.innerHTML = entries.map(entry => `
+  tbody.innerHTML = allAttempts.map(entry => `
     <tr>
       <td>${entry.name}</td>
       <td><strong>${entry.percent}%</strong></td>
@@ -120,11 +123,14 @@ async function refreshDashboard() {
 
   try {
     const entries = await HistoryStore.fetchAll();
+    const stats = getStats(entries);
     renderStats(entries);
     renderStudents(entries);
     renderAttempts(entries);
-    const students = groupByStudent(entries).length;
-    setStatus(`Synchronisé — ${students} élève${students !== 1 ? 's' : ''}, ${entries.length} tentative${entries.length !== 1 ? 's' : ''} (par nom)`);
+    setStatus(
+      `Synchronisé — ${stats.totalStudents} élève${stats.totalStudents !== 1 ? 's' : ''}, ` +
+      `${stats.totalAttempts} tentative${stats.totalAttempts !== 1 ? 's' : ''} (par nom)`
+    );
   } catch (error) {
     renderStats([]);
     renderStudents([]);

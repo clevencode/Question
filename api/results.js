@@ -21,6 +21,19 @@ function normalizeStudentKey(name) {
     .replace(/\p{Diacritic}/gu, '');
 }
 
+function toAttemptRecord(entry) {
+  return {
+    id: entry.id,
+    date: entry.date || new Date().toISOString(),
+    percent: entry.percent,
+    correct: entry.correct,
+    total: entry.total,
+    wrong: entry.wrong ?? entry.total - entry.correct,
+    grade: entry.grade || '',
+    answers: entry.answers || {}
+  };
+}
+
 function fromRow(row) {
   return {
     id: row.id,
@@ -32,23 +45,8 @@ function fromRow(row) {
     wrong: row.wrong,
     grade: row.grade,
     answers: row.answers,
-    date: row.created_at
-  };
-}
-
-function toRow(entry) {
-  return {
-    id: entry.id,
-    student_key: entry.studentKey || normalizeStudentKey(entry.name),
-    name: entry.name,
-    percent: entry.percent,
-    correct: entry.correct,
-    total: entry.total,
-    wrong: entry.wrong ?? entry.total - entry.correct,
-    grade: entry.grade || '',
-    answers: entry.answers || {},
-    created_at: entry.date || new Date().toISOString(),
-    source: entry.source || ''
+    date: row.updated_at || row.created_at,
+    attemptsHistory: Array.isArray(row.attempts_history) ? row.attempts_history : []
   };
 }
 
@@ -79,15 +77,60 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Dados inválidos' });
       }
 
-      const { error } = await supabase
-        .from('quiz_results')
-        .upsert(toRow(entry), { onConflict: 'id' });
+      const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
+      const attempt = toAttemptRecord(entry);
+      const now = entry.date || new Date().toISOString();
 
-      if (error) {
-        return res.status(500).json({ error: error.message });
+      const { data: existing, error: fetchError } = await supabase
+        .from('quiz_results')
+        .select('*')
+        .eq('student_key', studentKey)
+        .maybeSingle();
+
+      if (fetchError) {
+        return res.status(500).json({ error: fetchError.message });
       }
 
-      return res.status(201).json({ ok: true });
+      if (existing) {
+        const history = Array.isArray(existing.attempts_history) ? [...existing.attempts_history] : [];
+        history.unshift(attempt);
+
+        const { error } = await supabase
+          .from('quiz_results')
+          .update({
+            percent: entry.percent,
+            correct: entry.correct,
+            total: entry.total,
+            wrong: entry.wrong ?? entry.total - entry.correct,
+            grade: entry.grade || '',
+            answers: entry.answers || {},
+            attempts_history: history,
+            updated_at: now
+          })
+          .eq('student_key', studentKey);
+
+        if (error) return res.status(500).json({ error: error.message });
+        return res.status(200).json({ ok: true, updated: true });
+      }
+
+      const { error } = await supabase.from('quiz_results').insert({
+        id: studentKey,
+        student_key: studentKey,
+        name: entry.name,
+        percent: entry.percent,
+        correct: entry.correct,
+        total: entry.total,
+        wrong: entry.wrong ?? entry.total - entry.correct,
+        grade: entry.grade || '',
+        answers: entry.answers || {},
+        attempts_history: [attempt],
+        created_at: now,
+        updated_at: now,
+        source: entry.source || ''
+      });
+
+      if (error) return res.status(500).json({ error: error.message });
+      return res.status(201).json({ ok: true, created: true });
     }
 
     if (req.method === 'GET') {
@@ -98,7 +141,7 @@ module.exports = async (req, res) => {
       const { data, error } = await supabase
         .from('quiz_results')
         .select('*')
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false })
         .limit(500);
 
       if (error) {

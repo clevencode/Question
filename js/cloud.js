@@ -1,4 +1,4 @@
-// cloud.js — Sincronização Supabase por nome do aluno
+// cloud.js — Sincronização Supabase por nome do aluno (1 registro, histórico de tentativas)
 
 let supabaseClient = null;
 
@@ -26,25 +26,22 @@ function getSupabase() {
   return supabaseClient;
 }
 
-function toCloudRow(entry) {
-  const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
-
+function toAttemptRecord(entry) {
   return {
     id: entry.id,
-    student_key: studentKey,
-    name: entry.name,
+    date: entry.date || new Date().toISOString(),
     percent: entry.percent,
     correct: entry.correct,
     total: entry.total,
     wrong: entry.wrong ?? entry.total - entry.correct,
     grade: entry.grade || '',
-    answers: entry.answers || {},
-    created_at: entry.date || new Date().toISOString(),
-    source: typeof location !== 'undefined' ? location.origin : ''
+    answers: entry.answers || {}
   };
 }
 
 function fromCloudRow(row) {
+  const attemptsHistory = Array.isArray(row.attempts_history) ? row.attempts_history : [];
+
   return {
     id: row.id,
     studentKey: row.student_key || normalizeStudentKey(row.name),
@@ -55,17 +52,104 @@ function fromCloudRow(row) {
     wrong: row.wrong,
     grade: row.grade,
     answers: row.answers,
-    date: row.created_at
+    date: row.updated_at || row.created_at,
+    attemptsHistory
   };
+}
+
+function expandAttempts(studentRow) {
+  const name = studentRow.name;
+  const studentKey = studentRow.studentKey || normalizeStudentKey(name);
+
+  if (studentRow.attemptsHistory?.length) {
+    return studentRow.attemptsHistory.map(attempt => ({
+      id: attempt.id,
+      studentKey,
+      name,
+      percent: attempt.percent,
+      correct: attempt.correct,
+      total: attempt.total,
+      wrong: attempt.wrong,
+      grade: attempt.grade,
+      answers: attempt.answers,
+      date: attempt.date
+    }));
+  }
+
+  return [{
+    id: studentRow.id,
+    studentKey,
+    name,
+    percent: studentRow.percent,
+    correct: studentRow.correct,
+    total: studentRow.total,
+    wrong: studentRow.wrong,
+    grade: studentRow.grade,
+    answers: studentRow.answers,
+    date: studentRow.date
+  }];
 }
 
 async function syncResultToCloud(entry) {
   const sb = getSupabase();
   if (!sb) return false;
 
-  const { error } = await sb
+  const studentKey = entry.studentKey || normalizeStudentKey(entry.name);
+  const attempt = toAttemptRecord(entry);
+  const now = entry.date || new Date().toISOString();
+
+  const { data: existing, error: fetchError } = await sb
     .from('quiz_results')
-    .upsert(toCloudRow(entry), { onConflict: 'id' });
+    .select('*')
+    .eq('student_key', studentKey)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.warn('Cloud sync failed:', fetchError.message);
+    return false;
+  }
+
+  if (existing) {
+    const history = Array.isArray(existing.attempts_history) ? [...existing.attempts_history] : [];
+    history.unshift(attempt);
+
+    const { error } = await sb
+      .from('quiz_results')
+      .update({
+        percent: entry.percent,
+        correct: entry.correct,
+        total: entry.total,
+        wrong: entry.wrong ?? entry.total - entry.correct,
+        grade: entry.grade || '',
+        answers: entry.answers || {},
+        attempts_history: history,
+        updated_at: now
+      })
+      .eq('student_key', studentKey);
+
+    if (error) {
+      console.warn('Cloud sync failed:', error.message);
+      return false;
+    }
+
+    return true;
+  }
+
+  const { error } = await sb.from('quiz_results').insert({
+    id: studentKey,
+    student_key: studentKey,
+    name: entry.name,
+    percent: entry.percent,
+    correct: entry.correct,
+    total: entry.total,
+    wrong: entry.wrong ?? entry.total - entry.correct,
+    grade: entry.grade || '',
+    answers: entry.answers || {},
+    attempts_history: [attempt],
+    created_at: now,
+    updated_at: now,
+    source: typeof location !== 'undefined' ? location.origin : ''
+  });
 
   if (error) {
     console.warn('Cloud sync failed:', error.message);
@@ -84,7 +168,7 @@ async function fetchResultsFromCloud() {
   const { data, error } = await sb
     .from('quiz_results')
     .select('*')
-    .order('created_at', { ascending: false })
+    .order('updated_at', { ascending: false })
     .limit(500);
 
   if (error) {
@@ -103,15 +187,14 @@ async function fetchResultsByStudentName(name) {
     .from('quiz_results')
     .select('*')
     .eq('student_key', studentKey)
-    .order('created_at', { ascending: false })
-    .limit(30);
+    .maybeSingle();
 
-  if (error) {
-    console.warn('Cloud fetch by name failed:', error.message);
+  if (error || !data) {
+    if (error) console.warn('Cloud fetch by name failed:', error.message);
     return [];
   }
 
-  return Array.isArray(data) ? data.map(fromCloudRow) : [];
+  return expandAttempts(fromCloudRow(data));
 }
 
 async function clearResultsFromCloud() {

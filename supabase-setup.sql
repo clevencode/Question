@@ -11,16 +11,24 @@ create table if not exists quiz_results (
   wrong int not null default 0,
   grade text default '',
   answers jsonb default '{}',
+  attempts_history jsonb default '[]',
   created_at timestamptz default now(),
+  updated_at timestamptz default now(),
   source text default ''
 );
 
--- 2. Coluna student_key (se tabela já existia sem ela)
+-- 2. Colunas novas (se tabela já existia)
 alter table quiz_results add column if not exists student_key text;
+alter table quiz_results add column if not exists attempts_history jsonb default '[]';
+alter table quiz_results add column if not exists updated_at timestamptz default now();
 
 update quiz_results
 set student_key = lower(trim(name))
 where student_key is null;
+
+update quiz_results
+set updated_at = created_at
+where updated_at is null;
 
 -- 3. Segurança (RLS)
 alter table quiz_results enable row level security;
@@ -33,11 +41,15 @@ drop policy if exists "Permitir leitura pública" on quiz_results;
 create policy "Permitir leitura pública"
   on quiz_results for select using (true);
 
+drop policy if exists "Permitir atualização pública" on quiz_results;
+create policy "Permitir atualização pública"
+  on quiz_results for update using (true);
+
 drop policy if exists "Permitir exclusão pública" on quiz_results;
 create policy "Permitir exclusão pública"
   on quiz_results for delete using (true);
 
--- 4. Índice por nome do aluno
+-- 4. Índices
 create index if not exists idx_quiz_results_student_key on quiz_results(student_key);
 
 -- 5. Realtime (atualização automática no dashboard)
