@@ -23,3 +23,6 @@ create policy "Permitir leitura pública"
 
 create policy "Permitir exclusão pública"
   on quiz_results for delete using (true);
+
+-- Atualização em tempo real no dashboard (opcional)
+alter publication supabase_realtime add table quiz_results;

@@ -151,6 +151,7 @@ function initProfessorDashboard() {
   refreshDashboard();
   document.getElementById('btn-refresh')?.addEventListener('click', refreshDashboard);
   document.getElementById('btn-clear')?.addEventListener('click', clearAllResults);
+  subscribeToResultsChanges(() => refreshDashboard());
   setInterval(refreshDashboard, 30000);
 }
 

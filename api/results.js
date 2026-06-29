@@ -1,3 +1,5 @@
+const { createClient } = require('@supabase/supabase-js');
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const PROFESSOR_PASSWORD = process.env.PROFESSOR_PASSWORD || '1234';
@@ -6,13 +8,10 @@ function isConfigured() {
   return SUPABASE_URL?.startsWith('https://') && SERVICE_KEY?.length > 20;
 }
 
-function supabaseHeaders(extra = {}) {
-  return {
-    apikey: SERVICE_KEY,
-    Authorization: `Bearer ${SERVICE_KEY}`,
-    'Content-Type': 'application/json',
-    ...extra
-  };
+function getSupabase() {
+  return createClient(SUPABASE_URL, SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
 }
 
 function fromRow(row) {
@@ -51,7 +50,7 @@ function isProfessor(req) {
 module.exports = async (req, res) => {
   if (!isConfigured()) {
     return res.status(503).json({
-      error: 'Nuvem não configurada. Defina SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY na Vercel.'
+      error: 'Supabase não configurado. Defina SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY na Vercel.'
     });
   }
 
@@ -61,6 +60,8 @@ module.exports = async (req, res) => {
     return res.status(200).end();
   }
 
+  const supabase = getSupabase();
+
   try {
     if (req.method === 'POST') {
       const entry = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -69,15 +70,12 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Dados inválidos' });
       }
 
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/quiz_results`, {
-        method: 'POST',
-        headers: { ...supabaseHeaders(), Prefer: 'resolution=merge-duplicates' },
-        body: JSON.stringify(toRow(entry))
-      });
+      const { error } = await supabase
+        .from('quiz_results')
+        .upsert(toRow(entry), { onConflict: 'id' });
 
-      if (!response.ok) {
-        const text = await response.text();
-        return res.status(response.status).json({ error: text || 'Erro ao salvar' });
+      if (error) {
+        return res.status(500).json({ error: error.message });
       }
 
       return res.status(201).json({ ok: true });
@@ -88,17 +86,17 @@ module.exports = async (req, res) => {
         return res.status(401).json({ error: 'Não autorizado' });
       }
 
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/quiz_results?order=created_at.desc&limit=500`,
-        { headers: supabaseHeaders(), cache: 'no-store' }
-      );
+      const { data, error } = await supabase
+        .from('quiz_results')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(500);
 
-      if (!response.ok) {
-        return res.status(response.status).json({ error: 'Erro ao buscar resultados' });
+      if (error) {
+        return res.status(500).json({ error: error.message });
       }
 
-      const rows = await response.json();
-      return res.status(200).json(Array.isArray(rows) ? rows.map(fromRow) : []);
+      return res.status(200).json((data || []).map(fromRow));
     }
 
     if (req.method === 'DELETE') {
@@ -106,13 +104,13 @@ module.exports = async (req, res) => {
         return res.status(401).json({ error: 'Não autorizado' });
       }
 
-      const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/quiz_results?id=not.is.null`,
-        { method: 'DELETE', headers: supabaseHeaders() }
-      );
+      const { error } = await supabase
+        .from('quiz_results')
+        .delete()
+        .neq('id', '');
 
-      if (!response.ok) {
-        return res.status(response.status).json({ error: 'Erro ao apagar resultados' });
+      if (error) {
+        return res.status(500).json({ error: error.message });
       }
 
       return res.status(200).json({ ok: true });
