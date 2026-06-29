@@ -14,9 +14,31 @@ function buildStudentSummary(entry) {
 }
 
 function groupByStudent(entries) {
-  return entries
-    .map(buildStudentSummary)
-    .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  const map = new Map();
+
+  entries.forEach(entry => {
+    const key = entry.studentKey || normalizeStudentKey(entry.name);
+    const summary = buildStudentSummary(entry);
+
+    if (!map.has(key)) {
+      map.set(key, summary);
+      return;
+    }
+
+    const existing = map.get(key);
+    const isNewer = new Date(summary.modifiedAt) > new Date(existing.modifiedAt);
+
+    map.set(key, {
+      name: existing.name,
+      attemptCount: Math.max(existing.attemptCount, summary.attemptCount),
+      score: isNewer ? summary.score : existing.score,
+      correct: isNewer ? summary.correct : existing.correct,
+      total: isNewer ? summary.total : existing.total,
+      modifiedAt: isNewer ? summary.modifiedAt : existing.modifiedAt
+    });
+  });
+
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
 }
 
 function getStats(entries) {
@@ -98,7 +120,9 @@ function renderAttempts(entries) {
 
   tableWrap?.classList.remove('hidden');
 
-  tbody.innerHTML = students.map(student => `
+  const rows = [...students].sort((a, b) => new Date(b.modifiedAt) - new Date(a.modifiedAt));
+
+  tbody.innerHTML = rows.map(student => `
     <tr>
       <td>${student.name}</td>
       <td><strong>${student.score}%</strong></td>

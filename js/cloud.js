@@ -160,12 +160,12 @@ function dedupeStudentsByKey(rows) {
       ...(existing.attemptsHistory || [])
     ]);
 
-    const keepExistingName = existing.name;
     const latest = new Date(entry.date) > new Date(existing.date) ? entry : existing;
+    const oldest = latest === entry ? existing : entry;
 
     map.set(key, {
       ...latest,
-      name: keepExistingName,
+      name: oldest.name || latest.name,
       attemptsHistory: mergedAttempts
     });
   });
