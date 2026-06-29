@@ -126,7 +126,10 @@ function clearAllResults() {
   refreshDashboard();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initProfessorDashboard() {
+  if (window.__professorDashboardReady) return;
+  window.__professorDashboardReady = true;
+
   refreshDashboard();
   document.getElementById('btn-refresh')?.addEventListener('click', refreshDashboard);
   document.getElementById('btn-clear')?.addEventListener('click', clearAllResults);
@@ -134,4 +137,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('storage', e => {
     if (e.key === HISTORY_KEY) refreshDashboard();
   });
-});
+}
+
+window.initProfessorDashboard = initProfessorDashboard;
