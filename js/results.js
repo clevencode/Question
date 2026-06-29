@@ -141,8 +141,8 @@ async function renderHistoryScreen() {
         <button type="button" class="btn btn--outline btn--sm" onclick="showHistoryEntry('${entry.id}')">
           Voir
         </button>
-        <button type="button" class="btn btn--outline btn--sm btn--danger" onclick="deleteHistoryEntry('${entry.id}')" aria-label="Supprimer ce résultat">
-          ✕
+        <button type="button" class="btn btn--outline btn--sm" onclick="redoHistoryEntry('${entry.id}')" aria-label="Refaire le quiz pour ${entry.name}">
+          Refaire
         </button>
       </div>
     </article>
@@ -159,11 +159,17 @@ async function showHistory() {
   });
 }
 
-function deleteHistoryEntry(id) {
-  if (!window.confirm('Supprimer ce résultat de l\'historique ?')) return;
-  HistoryManager.remove(id);
-  updateHistoryLink();
-  renderHistoryScreen();
+async function redoHistoryEntry(id) {
+  let entry = HistoryManager.getById(id);
+
+  if (!entry && userName?.trim()) {
+    const entries = await HistoryManager.loadForStudent(userName);
+    entry = entries.find(e => e.id === id) || null;
+  }
+
+  if (!entry?.name) return;
+
+  launchQuiz(entry.name);
 }
 
 function clearAllHistory() {
