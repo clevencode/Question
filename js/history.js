@@ -53,11 +53,23 @@ const HistoryManager = {
   },
 
   getById(id) {
-    return this.load().find(e => e.id === id) || null;
+    const key = normalizeStudentKey(id) || id;
+    return this.load().find(e => {
+      const entryKey = e.studentKey || normalizeStudentKey(e.name);
+      return e.id === id || entryKey === key;
+    }) || null;
   },
 
   getByStudentKey(studentKey) {
-    return this.load().filter(e => (e.studentKey || normalizeStudentKey(e.name)) === studentKey);
+    const key = normalizeStudentKey(studentKey) || studentKey;
+    return this.load().filter(e => (e.studentKey || normalizeStudentKey(e.name)) === key);
+  },
+
+  getStudentEntry(studentKey) {
+    const entries = this.getByStudentKey(studentKey);
+    if (!entries.length) return null;
+
+    return entries.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
   },
 
   getUniqueStudents() {
@@ -118,6 +130,40 @@ const HistoryManager = {
     };
   }
 };
+
+function escapeHtmlAttr(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+async function resolveHistoryEntry(studentKey) {
+  const key = normalizeStudentKey(studentKey) || studentKey;
+  const local = HistoryManager.getStudentEntry(key);
+  const cloud = await fetchStudentSummary(key);
+
+  if (local && cloud) {
+    const newer = new Date(cloud.date) > new Date(local.date) ? cloud : local;
+    return {
+      ...newer,
+      id: key,
+      studentKey: key,
+      name: local.name || cloud.name,
+      answers: newer.answers || local.answers || cloud.answers || {}
+    };
+  }
+
+  const entry = local || cloud;
+  if (!entry) return null;
+
+  return {
+    ...entry,
+    id: key,
+    studentKey: key,
+    answers: entry.answers || {}
+  };
+}
 
 function formatHistoryDate(iso) {
   const d = new Date(iso);

@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderIntroContent();
   initNameInput();
   initKeyboardShortcuts();
+  initHistoryListActions();
   updateHistoryLink();
   showIntro();
 });

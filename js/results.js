@@ -85,17 +85,12 @@ async function showResults() {
   renderResultsUI({ score, answersMap: answers });
 }
 
-async function showHistoryEntry(id) {
-  let entry = HistoryManager.getById(id);
-
-  if (!entry && userName?.trim()) {
-    const entries = await HistoryManager.loadForStudent(userName);
-    entry = entries.find(e => e.id === id) || null;
-  }
-
+async function showHistoryEntry(studentKey) {
+  const entry = await resolveHistoryEntry(studentKey);
   if (!entry) return;
 
-  viewingHistoryId = id;
+  viewingHistoryId = entry.studentKey;
+  userName = entry.name;
 
   showScreen('results-screen', {
     announceMsg: `Résultat de ${entry.name} : ${entry.percent}%.`,
@@ -108,7 +103,7 @@ async function showHistoryEntry(id) {
       correct: entry.correct,
       total: entry.total
     },
-    answersMap: entry.answers
+    answersMap: entry.answers || {}
   });
 }
 
@@ -140,10 +135,23 @@ async function renderHistoryScreen() {
         <span class="history-item__detail">${entry.correct}/${entry.total}</span>
       </div>
       <div class="history-item__actions">
-        <button type="button" class="btn btn--outline btn--sm" onclick="showHistoryEntry('${entry.id}')">
+        <button
+          type="button"
+          class="btn btn--outline btn--sm"
+          data-action="view"
+          data-student-key="${escapeHtmlAttr(entry.studentKey)}"
+          aria-label="Voir le résultat de ${entry.name}"
+        >
           Voir
         </button>
-        <button type="button" class="btn btn--outline btn--sm" onclick="redoHistoryEntry('${entry.id}')" aria-label="Refaire le quiz pour ${entry.name}">
+        <button
+          type="button"
+          class="btn btn--outline btn--sm"
+          data-action="redo"
+          data-student-key="${escapeHtmlAttr(entry.studentKey)}"
+          data-student-name="${escapeHtmlAttr(entry.name)}"
+          aria-label="Refaire le quiz pour ${entry.name}"
+        >
           Refaire
         </button>
       </div>
@@ -151,7 +159,31 @@ async function renderHistoryScreen() {
   `).join('');
 }
 
+function initHistoryListActions() {
+  const container = document.getElementById('history-list');
+  if (!container || container.dataset.bound === 'true') return;
+
+  container.dataset.bound = 'true';
+  container.addEventListener('click', async event => {
+    const button = event.target.closest('[data-action]');
+    if (!button) return;
+
+    const studentKey = button.dataset.studentKey;
+    if (!studentKey) return;
+
+    if (button.dataset.action === 'view') {
+      await showHistoryEntry(studentKey);
+      return;
+    }
+
+    if (button.dataset.action === 'redo') {
+      await redoHistoryEntry(studentKey, button.dataset.studentName);
+    }
+  });
+}
+
 async function showHistory() {
+  initHistoryListActions();
   await renderHistoryScreen();
   showScreen('history-screen', {
     announceMsg: userName?.trim()
@@ -161,16 +193,17 @@ async function showHistory() {
   });
 }
 
-async function redoHistoryEntry(id) {
-  let entry = HistoryManager.getById(id);
+async function redoHistoryEntry(studentKey, studentName = '') {
+  const entry = await resolveHistoryEntry(studentKey);
+  const baseName = entry?.name || studentName;
+  if (!baseName) return;
 
-  if (!entry && userName?.trim()) {
-    const entries = await HistoryManager.loadForStudent(userName);
-    entry = entries.find(e => e.id === id) || null;
-  }
+  const name = await resolveCanonicalStudentName(baseName);
+  userName = name;
 
-  if (!entry?.name) return;
+  const nameInput = document.getElementById('user-name');
+  if (nameInput) nameInput.value = name;
 
-  launchQuiz(entry.name);
+  launchQuiz(name);
 }
 
