@@ -279,15 +279,15 @@ async function fetchResultsFromCloud() {
   return dedupeStudentsByKey(Array.isArray(data) ? data : []);
 }
 
-async function fetchResultsByStudentName(name) {
+async function fetchStudentSummary(name) {
   const sb = getSupabase();
-  if (!sb) return [];
+  if (!sb) return null;
 
   const studentKey = normalizeStudentKey(name);
 
   try {
     const records = await findStudentRecords(sb, studentKey);
-    if (!records.length) return [];
+    if (!records.length) return null;
 
     const merged = mergeStudentRecords(records);
     const student = fromCloudRow({
@@ -295,11 +295,27 @@ async function fetchResultsByStudentName(name) {
       attempts_history: merged.attempts
     });
 
-    return expandAttempts(student);
+    return {
+      id: student.studentKey,
+      studentKey: student.studentKey,
+      name: student.name,
+      percent: student.percent,
+      correct: student.correct,
+      total: student.total,
+      wrong: student.wrong,
+      grade: student.grade,
+      answers: student.answers,
+      date: student.date
+    };
   } catch (error) {
     console.warn('Cloud fetch by name failed:', error.message);
-    return [];
+    return null;
   }
+}
+
+async function fetchResultsByStudentName(name) {
+  const summary = await fetchStudentSummary(name);
+  return summary ? [summary] : [];
 }
 
 async function clearResultsFromCloud() {

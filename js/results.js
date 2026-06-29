@@ -73,7 +73,7 @@ async function showResults() {
     answersMap: answers
   });
 
-  HistoryManager.add(entry);
+  HistoryManager.upsert(entry);
   await syncResultToCloud(entry);
   updateHistoryLink(name);
 
@@ -120,7 +120,7 @@ async function renderHistoryScreen() {
   const name = userName?.trim();
   const entries = name
     ? await HistoryManager.loadForStudent(name)
-    : HistoryManager.load();
+    : HistoryManager.getUniqueStudents();
 
   if (empty) empty.classList.toggle('hidden', entries.length > 0);
 

@@ -23,9 +23,23 @@ const HistoryManager = {
     }
   },
 
-  add(entry) {
+  upsert(entry) {
     const history = this.load();
-    history.unshift(entry);
+    const key = entry.studentKey || normalizeStudentKey(entry.name);
+    const index = history.findIndex(e => (e.studentKey || normalizeStudentKey(e.name)) === key);
+    const record = {
+      ...entry,
+      id: key,
+      studentKey: key,
+      name: index >= 0 ? history[index].name : entry.name
+    };
+
+    if (index >= 0) {
+      history[index] = record;
+    } else {
+      history.unshift(record);
+    }
+
     return this.saveAll(history);
   },
 
@@ -46,25 +60,52 @@ const HistoryManager = {
     return this.load().filter(e => (e.studentKey || normalizeStudentKey(e.name)) === studentKey);
   },
 
-  async loadForStudent(name) {
-    const studentKey = normalizeStudentKey(name);
-    const cloudEntries = await fetchResultsByStudentName(name);
-    const localEntries = this.getByStudentKey(studentKey);
-    const merged = new Map();
+  getUniqueStudents() {
+    const map = new Map();
 
-    [...cloudEntries, ...localEntries].forEach(entry => {
-      merged.set(entry.id, entry);
+    this.load().forEach(entry => {
+      const key = entry.studentKey || normalizeStudentKey(entry.name);
+      const current = map.get(key);
+
+      if (!current || new Date(entry.date) > new Date(current.date)) {
+        map.set(key, {
+          ...entry,
+          id: key,
+          studentKey: key,
+          name: current?.name || entry.name
+        });
+      }
     });
 
-    return Array.from(merged.values())
+    return Array.from(map.values())
       .sort((a, b) => new Date(b.date) - new Date(a.date));
+  },
+
+  async loadForStudent(name) {
+    const studentKey = normalizeStudentKey(name);
+    const cloudEntry = await fetchStudentSummary(name);
+    const localEntry = this.getByStudentKey(studentKey)
+      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+    if (cloudEntry && localEntry) {
+      const newer = new Date(cloudEntry.date) > new Date(localEntry.date) ? cloudEntry : localEntry;
+      return [{
+        ...newer,
+        id: studentKey,
+        studentKey,
+        name: localEntry.name || cloudEntry.name
+      }];
+    }
+
+    const entry = cloudEntry || localEntry;
+    return entry ? [{ ...entry, id: studentKey, studentKey }] : [];
   },
 
   createEntry({ name, score, grade, answersMap }) {
     const displayName = formatStudentName(name);
     const studentKey = normalizeStudentKey(displayName);
     return {
-      id: `${studentKey}-${Date.now()}`,
+      id: studentKey,
       studentKey,
       name: displayName,
       percent: score.percent,
@@ -98,7 +139,7 @@ async function updateHistoryLink(name = userName?.trim()) {
     const entries = await HistoryManager.loadForStudent(name);
     count = entries.length;
   } else {
-    count = HistoryManager.load().length;
+    count = HistoryManager.getUniqueStudents().length;
   }
 
   if (link) {
