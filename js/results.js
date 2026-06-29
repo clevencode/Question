@@ -37,38 +37,14 @@ function buildGabaritoHtml(answersMap) {
   }).join('');
 }
 
-function renderResultsUI({ name, score, grade, answersMap, historyDate }) {
-  const nameEl = document.getElementById('result-name');
+function renderResultsUI({ score, answersMap }) {
   const scoreEl = document.getElementById('result-score');
-  const gradeEl = document.getElementById('result-grade');
   const detailEl = document.getElementById('result-detail');
-  const wrongEl = document.getElementById('result-wrong-count');
   const gabaritoEl = document.getElementById('gabarito-list');
   const ringEl = document.getElementById('score-ring');
-  const historyDateEl = document.getElementById('result-history-date');
 
-  if (nameEl) nameEl.textContent = name;
   if (scoreEl) scoreEl.textContent = `${score.percent}%`;
-  if (gradeEl) gradeEl.textContent = grade;
-  if (detailEl) detailEl.textContent = `${score.correct} sur ${score.total} réponses correctes`;
-
-  if (wrongEl) {
-    if (score.wrong > 0) {
-      wrongEl.textContent = `${score.wrong} erreur${score.wrong > 1 ? 's' : ''} — consultez le corrigé ci-dessous.`;
-      wrongEl.classList.remove('hidden');
-    } else {
-      wrongEl.classList.add('hidden');
-    }
-  }
-
-  if (historyDateEl) {
-    if (historyDate) {
-      historyDateEl.textContent = `Enregistré le ${formatHistoryDate(historyDate)}`;
-      historyDateEl.classList.remove('hidden');
-    } else {
-      historyDateEl.classList.add('hidden');
-    }
-  }
+  if (detailEl) detailEl.textContent = `${score.correct} sur ${score.total} questions correctes`;
 
   if (gabaritoEl) gabaritoEl.innerHTML = buildGabaritoHtml(answersMap);
 
@@ -101,7 +77,7 @@ function showResults() {
     focusSelector: '#results-title'
   });
 
-  renderResultsUI({ name, score, grade, answersMap: answers });
+  renderResultsUI({ score, answersMap: answers });
 }
 
 function showHistoryEntry(id) {
@@ -116,16 +92,12 @@ function showHistoryEntry(id) {
   });
 
   renderResultsUI({
-    name: entry.name,
     score: {
       percent: entry.percent,
       correct: entry.correct,
-      total: entry.total,
-      wrong: entry.wrong
+      total: entry.total
     },
-    grade: entry.grade,
-    answersMap: entry.answers,
-    historyDate: entry.date
+    answersMap: entry.answers
   });
 }
 

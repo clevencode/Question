@@ -640,32 +640,13 @@ body {
   font-weight: 700;
 }
 
-.result-name { font-size: clamp(1.1rem, 3vw, 1.5rem); }
-
-.result-grade {
-  font-size: 0.9rem;
-  color: var(--blue);
-  font-weight: 500;
-  margin: 12px auto 8px;
-  max-width: 420px;
-}
-
-.result-detail { font-size: 0.9rem; }
-
-.result-wrong-count {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: var(--red);
-  font-weight: 600;
-}
-
-.result-history-date {
-  margin-top: 8px;
+.result-detail {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--blue);
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
+  color: var(--blue);
+  margin-top: 8px;
 }
 
 .results-footer {
