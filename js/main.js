@@ -39,20 +39,14 @@ function showNameError() {
   nameInput?.setAttribute('aria-invalid', 'true');
 }
 
-function startQuiz() {
-  const nameInput = document.getElementById('user-name');
-  const name = nameInput?.value.trim() || '';
-
-  if (!name) {
-    showNameError();
-    return;
-  }
-
-  clearNameError();
-  userName = name;
+function launchQuiz(name) {
+  userName = name.trim();
   currentQuestionIndex = 0;
   answers = {};
   clearAdvanceTimeout();
+
+  const nameInput = document.getElementById('user-name');
+  if (nameInput) nameInput.value = userName;
 
   showScreen('quiz-screen', {
     announceMsg: `Quiz commencé. Question 1 sur ${QUESTIONS.length}.`,
@@ -60,20 +54,33 @@ function startQuiz() {
   });
 
   const greeting = document.getElementById('quiz-greeting');
-  if (greeting) greeting.textContent = name;
+  if (greeting) greeting.textContent = userName;
 
   renderQuestion();
 }
 
+function startQuiz() {
+  const nameInput = document.getElementById('user-name');
+  const name = nameInput?.value.trim() || userName.trim() || '';
+
+  if (!name) {
+    showNameError();
+    return;
+  }
+
+  clearNameError();
+  launchQuiz(name);
+}
+
 function restartQuiz() {
+  if (userName.trim()) {
+    launchQuiz(userName);
+    return;
+  }
+
   clearAdvanceTimeout();
-  userName = '';
   currentQuestionIndex = 0;
   answers = {};
-
-  const nameInput = document.getElementById('user-name');
-  if (nameInput) nameInput.value = '';
-
   showIntro();
 }
 
