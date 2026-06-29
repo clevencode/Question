@@ -2,6 +2,8 @@
 
 :root {
   --blue: #004BF3;
+  --red: #E50000;
+  --red-soft: #FFF0F0;
   --black: #000000;
   --white: #FFFFFF;
   --font-sans: 'Space Grotesk', 'IBM Plex Sans', system-ui, sans-serif;
@@ -442,8 +444,16 @@ body {
   background: var(--white);
 }
 
-.gabarito-item--correct { border-left: 3px solid var(--blue); }
-.gabarito-item--wrong { border-left: 3px solid var(--black); }
+.gabarito-item--correct {
+  border-color: var(--blue);
+  border-left-width: 3px;
+}
+
+.gabarito-item--wrong {
+  border-color: var(--red);
+  border-left-width: 3px;
+  background: var(--red-soft);
+}
 
 .gabarito-item__header {
   display: flex;
@@ -464,7 +474,8 @@ body {
 }
 
 .gabarito-item--correct .gabarito-item__status { color: var(--blue); }
-.gabarito-item--wrong .gabarito-item__status { color: var(--black); }
+.gabarito-item--wrong .gabarito-item__status { color: var(--red); }
+.gabarito-item--wrong .gabarito-item__num { color: var(--red); }
 
 .gabarito-item__question {
   font-size: 0.95rem;
