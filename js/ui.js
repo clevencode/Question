@@ -18,6 +18,7 @@ function focusFirst(container) {
 
 function updateStepper(step) {
   const index = STEPS.indexOf(step);
+  if (index === -1) return;
 
   document.querySelectorAll('.stepper__item[data-step]').forEach(item => {
     const itemIndex = STEPS.indexOf(item.dataset.step);

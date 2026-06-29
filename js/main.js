@@ -1,12 +1,13 @@
 // main.js — Navigation et initialisation
 
 function hideAllScreens() {
-  ['intro-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+  ['intro-screen', 'quiz-screen', 'results-screen', 'history-screen'].forEach(id => {
     document.getElementById(id)?.classList.add('hidden');
   });
 }
 
 function showIntro() {
+  updateHistoryLink();
   showScreen('intro-screen', {
     announceMsg: 'Étape 1 : lecture du contenu éducatif.',
     focusSelector: '#user-name'
@@ -123,5 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
   renderIntroContent();
   initNameInput();
   initKeyboardShortcuts();
+  updateHistoryLink();
   showIntro();
 });

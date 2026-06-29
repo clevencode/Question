@@ -26,7 +26,12 @@
             <img src="imagem/icon-tech.svg" alt="" class="nav__icon" width="32" height="32">
             <span class="nav__title">Technologie &amp; IA</span>
         </button>
-        <span class="nav__tag">8 questions · V/F</span>
+        <div class="nav__actions">
+            <button type="button" id="nav-history-btn" class="nav__history hidden" onclick="showHistory()" aria-label="Voir l'historique">
+                Historique
+            </button>
+            <span class="nav__tag">8 questions · V/F</span>
+        </div>
     </nav>
 
     <nav class="stepper" aria-label="Étapes du parcours">
@@ -76,6 +81,9 @@
                 <button type="submit" class="btn btn--primary btn--block">
                     Commencer le quiz
                     <span aria-hidden="true">→</span>
+                </button>
+                <button type="button" id="intro-history-link" class="btn btn--text hidden" onclick="showHistory()">
+                    <span>Voir l'historique</span>
                 </button>
             </form>
         </section>
@@ -144,6 +152,7 @@
                 <p id="result-grade" class="result-grade"></p>
                 <p id="result-detail" class="result-detail"></p>
                 <p id="result-wrong-count" class="result-wrong-count hidden"></p>
+                <p id="result-history-date" class="result-history-date hidden"></p>
             </header>
 
             <h3 class="gabarito-title">Corrigé explicatif</h3>
@@ -153,12 +162,36 @@
                 <button type="button" class="btn btn--primary btn--block" onclick="restartQuiz()">
                     Recommencer le quiz
                 </button>
+                <button type="button" class="btn btn--text" onclick="showHistory()">
+                    Voir l'historique
+                </button>
+            </footer>
+        </section>
+
+        <!-- HISTORY -->
+        <section id="history-screen" class="hidden" aria-labelledby="history-title">
+            <header class="history-header">
+                <h2 id="history-title" class="type-display history-title">Historique des résultats</h2>
+                <p class="history-subtitle">Résultats enregistrés sur cet appareil</p>
+            </header>
+
+            <p id="history-empty" class="history-empty">Aucun résultat enregistré pour le moment.</p>
+            <div id="history-list" class="history-list" role="list"></div>
+
+            <footer class="history-footer">
+                <button type="button" class="btn btn--outline btn--block" onclick="showIntro()">
+                    Retour à l'accueil
+                </button>
+                <button type="button" class="btn btn--text btn--danger" onclick="clearAllHistory()">
+                    Effacer tout l'historique
+                </button>
             </footer>
         </section>
 
     </main>
 
     <script src="js/data.js"></script>
+    <script src="js/history.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/quiz.js"></script>
     <script src="js/results.js"></script>
