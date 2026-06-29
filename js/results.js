@@ -64,12 +64,15 @@ function showResults() {
   const grade = getGradeLabel(score.percent);
   const name = userName.trim() || 'Étudiant·e';
 
-  HistoryManager.add(HistoryManager.createEntry({
+  const entry = HistoryManager.createEntry({
     name,
     score,
     grade,
     answersMap: answers
-  }));
+  });
+
+  HistoryManager.add(entry);
+  syncResultToCloud(entry);
   updateHistoryLink();
 
   showScreen('results-screen', {
