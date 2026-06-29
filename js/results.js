@@ -24,8 +24,6 @@ function buildGabaritoHtml(answersMap) {
   return QUESTIONS.map((q, i) => {
     const userAnswer = answersMap[q.id];
     const isCorrect = userAnswer === q.answer;
-    const userLabel = userAnswer === true ? 'Vrai' : userAnswer === false ? 'Faux' : '—';
-    const correctLabel = q.answer ? 'Vrai' : 'Faux';
 
     return `
       <article class="gabarito-item ${isCorrect ? 'gabarito-item--correct' : 'gabarito-item--wrong'}" role="listitem">
@@ -34,16 +32,6 @@ function buildGabaritoHtml(answersMap) {
           <span class="gabarito-item__badge">${isCorrect ? 'Correct' : 'Incorrect'}</span>
         </header>
         <p class="gabarito-item__question">${q.text}</p>
-        <dl class="gabarito-item__answers">
-          <div class="gabarito-item__answer-row gabarito-item__answer-row--user">
-            <dt>Votre réponse</dt>
-            <dd>${userLabel}</dd>
-          </div>
-          <div class="gabarito-item__answer-row gabarito-item__answer-row--expected">
-            <dt>Réponse correcte</dt>
-            <dd>${correctLabel}</dd>
-          </div>
-        </dl>
         <p class="gabarito-item__explanation">${q.explanation}</p>
       </article>`;
   }).join('');
