@@ -104,11 +104,3 @@ function showScreen(screenId, { announceMsg, focusSelector } = {}) {
     || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({ top: 0, behavior: instantScroll ? 'instant' : 'smooth' });
 }
-
-function confirmLeaveQuiz() {
-  const answered = QuizFlow.getAnsweredCount();
-  if (answered === 0) return true;
-  return window.confirm(
-    'Vous avez un quiz en cours. Voulez-vous vraiment retourner à l\'accueil ? Vos réponses seront perdues.'
-  );
-}

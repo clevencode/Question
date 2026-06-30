@@ -28,8 +28,6 @@ function showIntro() {
 
 function goHome() {
   const onQuiz = !document.getElementById('quiz-screen')?.classList.contains('hidden');
-  if (onQuiz && !confirmLeaveQuiz()) return;
-
   if (onQuiz) QuizProgress.save();
   clearAdvanceTimeout();
   showIntro();
