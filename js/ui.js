@@ -50,14 +50,16 @@ function updateStepper(step) {
 function setButtonLoading(button, loading, loadingLabel = 'Chargement…') {
   if (!button) return;
 
+  const label = button.querySelector('[data-btn-label]') || button;
+
   if (loading) {
     if (!button.dataset.originalLabel) {
-      button.dataset.originalLabel = button.textContent.trim();
+      button.dataset.originalLabel = label.textContent.trim();
     }
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
     button.classList.add('btn--loading');
-    button.textContent = loadingLabel;
+    label.textContent = loadingLabel;
     return;
   }
 
@@ -65,7 +67,7 @@ function setButtonLoading(button, loading, loadingLabel = 'Chargement…') {
   button.removeAttribute('aria-busy');
   button.classList.remove('btn--loading');
   if (button.dataset.originalLabel) {
-    button.textContent = button.dataset.originalLabel;
+    label.textContent = button.dataset.originalLabel;
     delete button.dataset.originalLabel;
   }
 }

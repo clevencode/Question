@@ -77,9 +77,10 @@
                     aria-describedby="name-hint name-error"
                 >
                 <p id="name-hint" class="form-hint">Votre nom sera affiché sur votre résultat final.</p>
+                <p id="quiz-resume-hint" class="form-hint hidden" role="status"></p>
                 <p id="name-error" class="input-error hidden" role="alert">Veuillez entrer votre nom pour commencer le quiz.</p>
-                <button type="submit" class="btn btn--primary btn--block">
-                    Commencer le quiz
+                <button type="submit" id="start-quiz-btn" class="btn btn--primary btn--block">
+                    <span id="start-quiz-label" data-btn-label>Commencer le quiz</span>
                     <span aria-hidden="true">→</span>
                 </button>
                 <button type="button" id="intro-history-link" class="btn btn--text hidden" onclick="showHistory()">

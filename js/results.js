@@ -123,6 +123,7 @@ function renderResultsUI({ score, answersMap, grade = '' }) {
 
 async function showResults() {
   clearAdvanceTimeout();
+  QuizProgress.clear();
   viewingHistoryId = null;
 
   const score = calculateScore();

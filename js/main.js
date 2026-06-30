@@ -6,7 +6,19 @@ function hideAllScreens() {
   });
 }
 
+function restoreIntroFromProgress() {
+  const progress = QuizProgress.getInProgress();
+  if (!progress) return;
+
+  const nameInput = document.getElementById('user-name');
+  if (nameInput && !nameInput.value.trim()) {
+    nameInput.value = progress.name;
+  }
+}
+
 function showIntro() {
+  restoreIntroFromProgress();
+  updateStartButton();
   updateHistoryLink();
   showScreen('intro-screen', {
     announceMsg: 'Étape 1 : lecture du contenu éducatif.',
@@ -18,6 +30,7 @@ function goHome() {
   const onQuiz = !document.getElementById('quiz-screen')?.classList.contains('hidden');
   if (onQuiz && !confirmLeaveQuiz()) return;
 
+  if (onQuiz) QuizProgress.save();
   clearAdvanceTimeout();
   showIntro();
 }
@@ -39,24 +52,49 @@ function showNameError() {
   nameInput?.setAttribute('aria-invalid', 'true');
 }
 
-function launchQuiz(name) {
+function launchQuiz(name, { fresh = true } = {}) {
   userName = formatStudentName(name);
-  currentQuestionIndex = 0;
-  answers = {};
+  if (fresh) {
+    currentQuestionIndex = 0;
+    answers = {};
+    QuizProgress.clear();
+  }
   clearAdvanceTimeout();
 
   const nameInput = document.getElementById('user-name');
   if (nameInput) nameInput.value = userName;
 
+  const questionNum = currentQuestionIndex + 1;
   showScreen('quiz-screen', {
-    announceMsg: `Quiz commencé. Question 1 sur ${QUESTIONS.length}.`,
+    announceMsg: fresh
+      ? `Quiz commencé. Question 1 sur ${QUESTIONS.length}.`
+      : `Quiz repris. Question ${questionNum} sur ${QUESTIONS.length}.`,
     focusSelector: '#btn-true'
   });
 
   const greeting = document.getElementById('quiz-greeting');
   if (greeting) greeting.textContent = userName;
 
-  renderQuestion();
+  renderQuestion({ animate: fresh });
+}
+
+function resumeQuiz(progress) {
+  QuizProgress.restore(progress);
+  clearAdvanceTimeout();
+
+  const nameInput = document.getElementById('user-name');
+  if (nameInput) nameInput.value = userName;
+
+  const questionNum = currentQuestionIndex + 1;
+  showScreen('quiz-screen', {
+    announceMsg: `Quiz repris. Question ${questionNum} sur ${QUESTIONS.length}.`,
+    focusSelector: '#btn-true'
+  });
+
+  const greeting = document.getElementById('quiz-greeting');
+  if (greeting) greeting.textContent = userName;
+
+  renderQuestion({ animate: false });
 }
 
 async function startQuiz() {
@@ -75,15 +113,23 @@ async function startQuiz() {
     name = await resolveCanonicalStudentName(name);
     if (nameInput) nameInput.value = name;
     clearNameError();
-    launchQuiz(name);
+
+    if (QuizProgress.canContinueWithName(name)) {
+      resumeQuiz(QuizProgress.load());
+      return;
+    }
+
+    launchQuiz(name, { fresh: true });
   } finally {
     setButtonLoading(submitBtn, false);
   }
 }
 
 function restartQuiz() {
+  QuizProgress.clear();
+
   if (userName.trim()) {
-    launchQuiz(userName);
+    launchQuiz(userName, { fresh: true });
     return;
   }
 
@@ -127,6 +173,7 @@ function initNameInput() {
     clearNameError();
     updateHistoryLinkLocal(name);
     debouncedHistoryLink(name);
+    updateStartButton();
   });
 }
 
@@ -142,12 +189,25 @@ function initKeyboardShortcuts() {
   });
 }
 
+function initQuizPersistence() {
+  const saveIfOnQuiz = () => {
+    const onQuiz = !document.getElementById('quiz-screen')?.classList.contains('hidden');
+    if (onQuiz) QuizProgress.save();
+  };
+
+  window.addEventListener('beforeunload', saveIfOnQuiz);
+  window.addEventListener('pagehide', saveIfOnQuiz);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   renderIntroContent();
   initQuizUI();
   initNameInput();
   initKeyboardShortcuts();
   initHistoryListActions();
+  initQuizPersistence();
+  restoreIntroFromProgress();
+  updateStartButton();
   updateHistoryLinkLocal();
   updateHistoryLink();
   showIntro();

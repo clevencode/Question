@@ -5,6 +5,110 @@ let advanceTimeout = null;
 let isAdvancing = false;
 
 const QuizUI = { ready: false };
+const PROGRESS_KEY = 'techIaQuizProgress';
+
+const QuizProgress = {
+  load() {
+    try {
+      const raw = localStorage.getItem(PROGRESS_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  },
+
+  isInProgress(data) {
+    if (!data?.name?.trim()) return false;
+    const count = QuizFlow.getAnsweredCount(data.answers || {}, QUESTIONS);
+    return count > 0 && count < QUESTIONS.length;
+  },
+
+  getInProgress() {
+    const data = this.load();
+    return data && this.isInProgress(data) ? data : null;
+  },
+
+  canContinueWithName(name) {
+    const data = this.getInProgress();
+    if (!data) return false;
+    return normalizeStudentKey(name) === normalizeStudentKey(data.name);
+  },
+
+  resolveResumeIndex(answersMap, savedIndex) {
+    const index = Math.min(Math.max(0, savedIndex), QUESTIONS.length - 1);
+    const question = QUESTIONS[index];
+    if (question && !QuizFlow.isQuestionAnswered(question.id, answersMap)) {
+      return index;
+    }
+
+    const firstUnanswered = QUESTIONS.findIndex(q => !QuizFlow.isQuestionAnswered(q.id, answersMap));
+    return firstUnanswered >= 0 ? firstUnanswered : index;
+  },
+
+  save() {
+    const answered = QuizFlow.getAnsweredCount();
+    if (answered <= 0 || answered >= QUESTIONS.length) {
+      this.clear();
+      return;
+    }
+
+    try {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+        name: userName,
+        currentQuestionIndex,
+        answers: { ...answers },
+        savedAt: new Date().toISOString()
+      }));
+    } catch {
+      return;
+    }
+
+    updateStartButton();
+  },
+
+  clear() {
+    localStorage.removeItem(PROGRESS_KEY);
+    updateStartButton();
+  },
+
+  restore(data) {
+    userName = formatStudentName(data.name);
+    answers = { ...data.answers };
+    currentQuestionIndex = this.resolveResumeIndex(answers, data.currentQuestionIndex ?? 0);
+  }
+};
+
+function updateStartButton() {
+  const label = document.getElementById('start-quiz-label');
+  const hint = document.getElementById('quiz-resume-hint');
+  const nameInput = document.getElementById('user-name');
+  const currentName = formatStudentName(nameInput?.value || '');
+  const progress = QuizProgress.getInProgress();
+  const canContinue = progress && (
+    !currentName || QuizProgress.canContinueWithName(currentName)
+  );
+
+  if (label) {
+    label.textContent = canContinue ? 'Continuer le quiz' : 'Commencer le quiz';
+  }
+
+  if (hint) {
+    if (canContinue && progress) {
+      const questionNum = QuizProgress.resolveResumeIndex(
+        progress.answers,
+        progress.currentQuestionIndex
+      ) + 1;
+      const answered = QuizFlow.getAnsweredCount(progress.answers);
+      hint.textContent =
+        `Reprise à la question ${questionNum} sur ${QUESTIONS.length} — ` +
+        `${answered} réponse${answered > 1 ? 's' : ''} enregistrée${answered > 1 ? 's' : ''}.`;
+      hint.classList.remove('hidden');
+    } else {
+      hint.textContent = '';
+      hint.classList.add('hidden');
+    }
+  }
+}
 
 const QuizFlow = {
   isValidAnswer(value) {
@@ -152,6 +256,7 @@ function selectAnswer(value) {
   if (!question || isAdvancing) return;
 
   answers[question.id] = value;
+  QuizProgress.save();
 
   const selectedBtn = value ? QuizUI.btnTrue : QuizUI.btnFalse;
 
@@ -169,6 +274,7 @@ function goToQuestion(index) {
   clearAdvanceTimeout();
   currentQuestionIndex = index;
   renderQuestion();
+  QuizProgress.save();
 }
 
 function nextQuestion() {
