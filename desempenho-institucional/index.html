@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Desempenho Institucional • Technologie &amp; IA</title>
+    <title>Desempenho Institucional • Tecnologia &amp; IA</title>
     <meta name="theme-color" content="#004BF3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,17 +12,17 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <a href="#dashboard-main" class="skip-link">Aller au contenu principal</a>
+    <a href="#dashboard-main" class="skip-link">Ir para o conteúdo principal</a>
     <div id="live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 
     <section id="auth-gate" class="auth-gate" aria-labelledby="auth-title">
         <div class="auth-card">
-            <span class="auth-card__label">Accès professeur</span>
+            <span class="auth-card__label">Acesso do professor</span>
             <h1 id="auth-title" class="auth-card__title">Desempenho Institucional</h1>
-            <p class="auth-card__subtitle">Technologie &amp; IA — réservé au personnel enseignant.</p>
+            <p class="auth-card__subtitle">Tecnologia &amp; IA — reservado ao corpo docente.</p>
 
             <form id="auth-form" class="auth-form" autocomplete="off">
-                <label class="auth-form__label" for="auth-password">Mot de passe</label>
+                <label class="auth-form__label" for="auth-password">Senha</label>
                 <input
                     type="password"
                     id="auth-password"
@@ -32,66 +32,66 @@
                     autocomplete="current-password"
                     aria-describedby="auth-error"
                 >
-                <p id="auth-error" class="auth-form__error hidden" role="alert">Mot de passe incorrect.</p>
-                <button type="submit" class="auth-form__submit">Entrer</button>
+                <p id="auth-error" class="auth-form__error hidden" role="alert">Senha incorreta.</p>
+                <button type="submit" class="auth-form__submit">Entrar</button>
             </form>
 
-            <a href="../" class="auth-card__back">← Retour au quiz</a>
+            <a href="../" class="auth-card__back">← Voltar ao quiz</a>
         </div>
     </section>
 
     <div id="app" class="hidden">
         <nav class="nav">
-            <span class="nav__title">Dashboard — Usage institutionnel</span>
+            <span class="nav__title">Painel — Uso institucional</span>
             <div class="nav__actions">
                 <a href="../" class="nav__link">← Quiz</a>
-                <button type="button" id="btn-refresh" class="nav__link">Actualiser</button>
-                <button type="button" id="btn-logout" class="nav__link">Déconnexion</button>
+                <button type="button" id="btn-refresh" class="nav__link">Atualizar</button>
+                <button type="button" id="btn-logout" class="nav__link">Sair</button>
             </div>
         </nav>
 
         <main id="dashboard-main" class="shell">
             <header class="hero">
-                <span class="hero__label">Suivi des performances</span>
-                <h1 class="hero__title">Technologie &amp; IA</h1>
-                <p class="hero__subtitle">Résultats regroupés par <strong>nom de l'élève</strong>, quel que soit l'appareil utilisé. Même nom = mise à jour du score, pas de doublon.</p>
-                <p class="hero__note">Lecture seule — les élèves gèrent leur historique depuis le quiz.</p>
-                <p id="sync-status" class="sync-status" role="status" aria-live="polite">Chargement…</p>
+                <span class="hero__label">Acompanhamento de desempenho</span>
+                <h1 class="hero__title">Tecnologia &amp; IA</h1>
+                <p class="hero__subtitle">Resultados agrupados por <strong>nome do aluno</strong>, em qualquer dispositivo. Mesmo nome = atualização da pontuação, sem duplicatas.</p>
+                <p class="hero__note">Somente leitura — os alunos gerenciam o histórico no quiz.</p>
+                <p id="sync-status" class="sync-status" role="status" aria-live="polite">Carregando…</p>
             </header>
 
-            <section class="stats" aria-label="Statistiques globales">
+            <section class="stats" aria-label="Estatísticas gerais">
                 <article class="stat-card">
                     <span class="stat-card__value" id="stat-students">0</span>
-                    <span class="stat-card__label">Élèves</span>
+                    <span class="stat-card__label">Alunos</span>
                 </article>
                 <article class="stat-card">
                     <span class="stat-card__value" id="stat-attempts">0</span>
-                    <span class="stat-card__label">Tentatives</span>
+                    <span class="stat-card__label">Tentativas</span>
                 </article>
                 <article class="stat-card stat-card--highlight">
                     <span class="stat-card__value" id="stat-average">0%</span>
-                    <span class="stat-card__label">Moyenne</span>
+                    <span class="stat-card__label">Média</span>
                 </article>
             </section>
 
-            <h2 class="section-title">Performance par élève</h2>
+            <h2 class="section-title">Desempenho por aluno</h2>
 
             <p id="dashboard-empty" class="empty-state">
-                Aucun résultat. Les élèves doivent terminer le quiz en ligne.
+                Nenhum resultado. Os alunos precisam concluir o quiz online.
             </p>
 
             <div id="students-list" class="students-list"></div>
 
-            <h2 class="section-title section-title--spaced">Historique détaillé</h2>
+            <h2 class="section-title section-title--spaced">Histórico detalhado</h2>
             <div id="attempts-table-wrap" class="table-wrap hidden">
                 <table class="table">
-                    <caption class="table__caption">Dernière modification par élève — une ligne par nom</caption>
+                    <caption class="table__caption">Última modificação por aluno — uma linha por nome</caption>
                     <thead>
                         <tr>
-                            <th>Élève</th>
-                            <th>Score</th>
-                            <th>Correctes</th>
-                            <th>Date</th>
+                            <th>Aluno</th>
+                            <th>Pontuação</th>
+                            <th>Acertos</th>
+                            <th>Data</th>
                         </tr>
                     </thead>
                     <tbody id="attempts-body"></tbody>

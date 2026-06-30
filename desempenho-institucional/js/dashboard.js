@@ -4,7 +4,7 @@ function buildStudentSummary(entry) {
   const attemptCount = entry.attemptsHistory?.length || 1;
 
   return {
-    name: entry.name?.trim() || 'Sans nom',
+    name: entry.name?.trim() || 'Sem nome',
     attemptCount,
     score: entry.percent,
     correct: entry.correct,
@@ -38,7 +38,7 @@ function groupByStudent(entries) {
     });
   });
 
-  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt'));
 }
 
 function getStats(entries) {
@@ -53,6 +53,11 @@ function getStats(entries) {
     totalStudents: students.length,
     average: avg
   };
+}
+
+function localizeError(message) {
+  if (!message) return 'Erro de sincronização';
+  return message.replace(/^Erreur Supabase\s*:\s*/i, 'Erro Supabase: ');
 }
 
 function announce(message) {
@@ -96,16 +101,16 @@ function renderStudents(entries) {
     <article class="student-card">
       <header class="student-card__header">
         <h3 class="student-card__name">${student.name}</h3>
-        <span class="student-card__attempts">${student.attemptCount} tentative${student.attemptCount > 1 ? 's' : ''}</span>
+        <span class="student-card__attempts">${student.attemptCount} tentativa${student.attemptCount > 1 ? 's' : ''}</span>
       </header>
       <div class="student-card__scores">
         <div class="student-card__metric">
-          <span class="student-card__label">Score</span>
+          <span class="student-card__label">Pontuação</span>
           <span class="student-card__value student-card__value--blue">${student.score}%</span>
-          <span class="student-card__sub">${student.correct}/${student.total} correctes</span>
+          <span class="student-card__sub">${student.correct}/${student.total} acertos</span>
         </div>
         <div class="student-card__metric">
-          <span class="student-card__label">Modifié</span>
+          <span class="student-card__label">Modificado</span>
           <span class="student-card__date">${formatDate(student.modifiedAt)}</span>
         </div>
       </div>
@@ -142,11 +147,11 @@ function renderAttempts(entries) {
 
 async function refreshDashboard() {
   const refreshBtn = document.getElementById('btn-refresh');
-  setStatus('Synchronisation…');
+  setStatus('Sincronizando…');
   if (refreshBtn) {
     refreshBtn.disabled = true;
     refreshBtn.setAttribute('aria-busy', 'true');
-    refreshBtn.textContent = 'Actualisation…';
+    refreshBtn.textContent = 'Atualizando…';
   }
 
   try {
@@ -156,20 +161,20 @@ async function refreshDashboard() {
     renderStudents(entries);
     renderAttempts(entries);
     setStatus(
-      `Synchronisé — ${stats.totalStudents} élève${stats.totalStudents !== 1 ? 's' : ''}, ` +
-      `${stats.totalAttempts} tentative${stats.totalAttempts !== 1 ? 's' : ''}`
+      `Sincronizado — ${stats.totalStudents} aluno${stats.totalStudents !== 1 ? 's' : ''}, ` +
+      `${stats.totalAttempts} tentativa${stats.totalAttempts !== 1 ? 's' : ''}`
     );
   } catch (error) {
     renderStats([]);
     renderStudents([]);
     renderAttempts([]);
-    setStatus(error.message || 'Erreur de synchronisation', true);
+    setStatus(localizeError(error.message), true);
   } finally {
     const refreshBtn = document.getElementById('btn-refresh');
     if (refreshBtn) {
       refreshBtn.disabled = false;
       refreshBtn.removeAttribute('aria-busy');
-      refreshBtn.textContent = 'Actualiser';
+      refreshBtn.textContent = 'Atualizar';
     }
   }
 }

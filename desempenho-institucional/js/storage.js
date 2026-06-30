@@ -5,7 +5,7 @@ const HistoryStore = {
 };
 
 function formatDate(iso) {
-  return new Date(iso).toLocaleDateString('fr-FR', {
+  return new Date(iso).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
