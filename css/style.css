@@ -2,6 +2,7 @@
 
 :root {
   --blue: #004BF3;
+  --blue-50: rgba(0, 75, 243, 0.5);
   --red: #E50000;
   --red-soft: #FFF0F0;
   --black: #000000;
@@ -598,9 +599,22 @@ body {
 
 .answer-btn--selected {
   border-color: var(--blue);
-  background: var(--blue);
-  color: var(--white);
-  box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--blue);
+  background: var(--white);
+  color: var(--blue);
+}
+
+.answer-btn--selected::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--blue-50);
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.answer-btn--selected:not(.answer-btn--confirming)::before {
+  opacity: 1;
 }
 
 .answer-btn--dimmed {
@@ -608,18 +622,21 @@ body {
   border-color: var(--black);
   background: var(--white);
   color: var(--black);
-  box-shadow: none;
+}
+
+.answer-btn--confirming::before {
+  opacity: 0;
 }
 
 .answer-btn--confirming::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
-  height: 3px;
+  bottom: 0;
   width: 0;
-  background: rgba(255, 255, 255, 0.92);
-  animation: answer-progress var(--advance-ms, 450ms) linear forwards;
+  background: var(--blue-50);
+  animation: answer-fill var(--advance-ms, 450ms) linear forwards;
   z-index: 0;
 }
 
@@ -635,7 +652,7 @@ body {
   opacity: 0.38;
 }
 
-@keyframes answer-progress {
+@keyframes answer-fill {
   from { width: 0; }
   to { width: 100%; }
 }
@@ -969,6 +986,10 @@ body {
   .answer-btn--confirming::after {
     width: 100%;
     animation: none;
+  }
+
+  .answer-btn--selected:not(.answer-btn--confirming)::before {
+    opacity: 1;
   }
 
   .skeleton {
