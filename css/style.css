@@ -672,16 +672,53 @@ body {
   to { width: 100%; }
 }
 
+.btn--nav {
+  background: none;
+  border: none;
+  color: var(--blue);
+  padding: 12px 4px;
+  min-height: auto;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  justify-content: flex-start;
+}
+
+.btn--nav:last-child {
+  justify-content: flex-end;
+}
+
+.btn--nav:hover:not(:disabled) {
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.btn--nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.btn--nav:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 .quiz-nav {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
   margin-top: 24px;
+  padding-top: 8px;
+  border-top: 1px solid var(--black);
 }
 
 .quiz-nav .btn {
-  flex: 1;
-  max-width: calc(50% - 6px);
+  flex: 0 1 auto;
+  max-width: none;
 }
 
 /* ── Results ── */
