@@ -184,6 +184,7 @@ function initKeyboardShortcuts() {
     if (key === 'v') { e.preventDefault(); selectAnswer(true); }
     if (key === 'f') { e.preventDefault(); selectAnswer(false); }
     if (key === 'arrowleft') { e.preventDefault(); prevQuestion(); }
+    if (key === 'arrowright') { e.preventDefault(); nextQuestion(); }
   });
 }
 

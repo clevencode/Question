@@ -143,6 +143,8 @@ function initQuizUI() {
   QuizUI.btnTrue = document.getElementById('btn-true');
   QuizUI.btnFalse = document.getElementById('btn-false');
   QuizUI.btnPrev = document.getElementById('btn-prev');
+  QuizUI.btnNext = document.getElementById('btn-next');
+  QuizUI.btnNextLabel = document.getElementById('btn-next-label');
   QuizUI.progressBar = document.getElementById('progress-bar');
   QuizUI.progressTrack = document.getElementById('progress-track');
   QuizUI.progressText = document.getElementById('progress-text');
@@ -174,6 +176,25 @@ function updateAnswerButtons(selectedValue) {
   btnFalse?.setAttribute('aria-pressed', String(isFalse));
 }
 
+function updateQuizNavButtons() {
+  initQuizUI();
+  const { btnPrev, btnNext, btnNextLabel } = QuizUI;
+  const canGoNext = QuizFlow.canAdvanceFrom(currentQuestionIndex);
+  const isLast = currentQuestionIndex >= QUESTIONS.length - 1;
+
+  if (btnPrev) {
+    btnPrev.disabled = currentQuestionIndex === 0;
+  }
+
+  if (btnNext) {
+    btnNext.disabled = !canGoNext;
+    if (btnNextLabel) {
+      btnNextLabel.textContent = isLast ? 'Terminer' : 'Suivant';
+    }
+    btnNext.setAttribute('aria-label', isLast ? 'Voir le résultat' : 'Question suivante');
+  }
+}
+
 function updateProgress() {
   initQuizUI();
   const total = QUESTIONS.length;
@@ -194,14 +215,13 @@ function renderQuestion({ animate = true } = {}) {
   const question = QUESTIONS[currentQuestionIndex];
   if (!question) return;
 
-  const { card, numEl, textEl, btnPrev } = QuizUI;
+  const { card, numEl, textEl } = QuizUI;
 
   if (numEl) numEl.textContent = String(currentQuestionIndex + 1).padStart(2, '0');
   if (textEl) textEl.textContent = question.text;
 
   updateAnswerButtons(answers[question.id]);
-
-  if (btnPrev) btnPrev.disabled = currentQuestionIndex === 0;
+  updateQuizNavButtons();
 
   card?.classList.remove('question-card--advancing');
 
@@ -233,12 +253,14 @@ function clearAdvanceTimeout() {
 
   const question = QUESTIONS[currentQuestionIndex];
   if (question) updateAnswerButtons(answers[question.id]);
+  updateQuizNavButtons();
 }
 
 function scheduleAutoAdvance() {
   clearAdvanceTimeout();
   isAdvancing = true;
   setAnswerButtonsDisabled(true);
+  updateQuizNavButtons();
   QuizUI.card?.classList.add('question-card--advancing');
 
   advanceTimeout = setTimeout(() => {

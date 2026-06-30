@@ -659,7 +659,14 @@ body {
 
 .quiz-nav {
   display: flex;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 24px;
+}
+
+.quiz-nav .btn {
+  flex: 1;
+  max-width: calc(50% - 6px);
 }
 
 /* ── Results ── */
