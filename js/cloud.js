@@ -2,6 +2,32 @@
 
 let supabaseClient = null;
 
+const COLS_SUMMARY = 'id,student_key,name,percent,correct,total,wrong,grade,updated_at,created_at,attempts_history';
+const COLS_FULL = `${COLS_SUMMARY},answers`;
+const CACHE_TTL_MS = 12_000;
+const cloudCache = new Map();
+
+function getFromCache(key) {
+  const hit = cloudCache.get(key);
+  if (!hit || Date.now() - hit.at > CACHE_TTL_MS) {
+    cloudCache.delete(key);
+    return null;
+  }
+  return hit.value;
+}
+
+function setCache(key, value) {
+  cloudCache.set(key, { at: Date.now(), value });
+}
+
+function bustCloudCache(...prefixes) {
+  for (const key of [...cloudCache.keys()]) {
+    if (prefixes.some(prefix => key.startsWith(prefix))) {
+      cloudCache.delete(key);
+    }
+  }
+}
+
 function formatStudentName(name) {
   return (name?.trim() || '').replace(/\s+/g, ' ');
 }
@@ -106,25 +132,25 @@ function expandAttempts(studentRow) {
   }];
 }
 
-async function findStudentRecords(sb, studentKey) {
+async function findStudentRecords(sb, studentKey, columns = COLS_FULL) {
   const { data, error } = await sb
     .from('quiz_results')
-    .select('*')
+    .select(columns)
     .eq('student_key', studentKey)
-    .order('updated_at', { ascending: false });
+    .order('updated_at', { ascending: false })
+    .limit(5);
 
   if (error) throw error;
   if (data?.length) return data;
 
-  const { data: all, error: allError } = await sb
+  const { data: byId, error: idError } = await sb
     .from('quiz_results')
-    .select('*')
-    .order('updated_at', { ascending: false })
-    .limit(500);
+    .select(columns)
+    .eq('id', studentKey)
+    .limit(5);
 
-  if (allError) throw allError;
-
-  return (all || []).filter(row => normalizeStudentKey(row.name) === studentKey);
+  if (idError) throw idError;
+  return byId || [];
 }
 
 function mergeStudentRecords(records) {
@@ -224,10 +250,13 @@ async function syncResultToCloud(entry) {
         return false;
       }
 
-      for (const duplicate of merged.duplicates) {
-        await sb.from('quiz_results').delete().eq('id', duplicate.id);
+      if (merged.duplicates.length) {
+        await Promise.all(
+          merged.duplicates.map(row => sb.from('quiz_results').delete().eq('id', row.id))
+        );
       }
 
+      bustCloudCache('results:', `student:${studentKey}`);
       return true;
     }
 
@@ -253,6 +282,7 @@ async function syncResultToCloud(entry) {
       return false;
     }
 
+    bustCloudCache('results:', `student:${studentKey}`);
     return true;
   } catch (error) {
     console.warn('Cloud sync error:', error);
@@ -261,6 +291,9 @@ async function syncResultToCloud(entry) {
 }
 
 async function fetchResultsFromCloud() {
+  const cached = getFromCache('results:all');
+  if (cached) return cached;
+
   const sb = getSupabase();
   if (!sb) {
     throw new Error('Supabase não configurado. Edite js/cloud-config.js com URL e chave anon.');
@@ -268,7 +301,7 @@ async function fetchResultsFromCloud() {
 
   const { data, error } = await sb
     .from('quiz_results')
-    .select('*')
+    .select(COLS_SUMMARY)
     .order('updated_at', { ascending: false })
     .limit(500);
 
@@ -276,17 +309,23 @@ async function fetchResultsFromCloud() {
     throw new Error(`Erreur Supabase : ${error.message}`);
   }
 
-  return dedupeStudentsByKey(Array.isArray(data) ? data : []);
+  const results = dedupeStudentsByKey(Array.isArray(data) ? data : []);
+  setCache('results:all', results);
+  return results;
 }
 
-async function fetchStudentSummary(name) {
+async function fetchStudentSummary(name, { includeAnswers = false } = {}) {
   const sb = getSupabase();
   if (!sb) return null;
 
   const studentKey = normalizeStudentKey(name);
+  const cacheKey = `student:${studentKey}:${includeAnswers ? 'full' : 'summary'}`;
+  const cached = getFromCache(cacheKey);
+  if (cached) return cached;
 
   try {
-    const records = await findStudentRecords(sb, studentKey);
+    const columns = includeAnswers ? COLS_FULL : COLS_SUMMARY;
+    const records = await findStudentRecords(sb, studentKey, columns);
     if (!records.length) return null;
 
     const merged = mergeStudentRecords(records);
@@ -295,7 +334,7 @@ async function fetchStudentSummary(name) {
       attempts_history: merged.attempts
     });
 
-    return {
+    const summary = {
       id: student.studentKey,
       studentKey: student.studentKey,
       name: student.name,
@@ -308,6 +347,8 @@ async function fetchStudentSummary(name) {
       date: student.date,
       attemptCount: merged.attempts.length || 1
     };
+    setCache(cacheKey, summary);
+    return summary;
   } catch (error) {
     console.warn('Cloud fetch by name failed:', error.message);
     return null;
@@ -328,9 +369,10 @@ async function clearStudentFromCloud(studentKey) {
   try {
     const records = await findStudentRecords(sb, key);
 
-    for (const record of records) {
-      await sb.from('quiz_results').delete().eq('id', record.id);
-    }
+    await Promise.all(
+      records.map(record => sb.from('quiz_results').delete().eq('id', record.id))
+    );
+    bustCloudCache('results:', `student:${key}`);
   } catch (error) {
     console.warn('Cloud clear failed:', error.message);
   }

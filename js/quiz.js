@@ -4,6 +4,8 @@ const AUTO_ADVANCE_MS = 450;
 let advanceTimeout = null;
 let isAdvancing = false;
 
+const QuizUI = { ready: false };
+
 const QuizFlow = {
   isValidAnswer(value) {
     return value === true || value === false;
@@ -28,13 +30,29 @@ const QuizFlow = {
   }
 };
 
+function initQuizUI() {
+  if (QuizUI.ready) return;
+
+  QuizUI.card = document.getElementById('question-card');
+  QuizUI.numEl = document.getElementById('question-number');
+  QuizUI.textEl = document.getElementById('question-text');
+  QuizUI.btnTrue = document.getElementById('btn-true');
+  QuizUI.btnFalse = document.getElementById('btn-false');
+  QuizUI.btnPrev = document.getElementById('btn-prev');
+  QuizUI.progressBar = document.getElementById('progress-bar');
+  QuizUI.progressTrack = document.getElementById('progress-track');
+  QuizUI.progressText = document.getElementById('progress-text');
+  QuizUI.progressLabel = document.getElementById('progress-label');
+  QuizUI.ready = true;
+}
+
 function syncAdvanceDuration() {
   document.documentElement.style.setProperty('--advance-ms', `${AUTO_ADVANCE_MS}ms`);
 }
 
 function updateAnswerButtons(selectedValue) {
-  const btnTrue = document.getElementById('btn-true');
-  const btnFalse = document.getElementById('btn-false');
+  initQuizUI();
+  const { btnTrue, btnFalse } = QuizUI;
 
   [btnTrue, btnFalse].forEach(btn => {
     btn?.classList.remove('answer-btn--confirming', 'answer-btn--dimmed');
@@ -53,32 +71,26 @@ function updateAnswerButtons(selectedValue) {
 }
 
 function updateProgress() {
+  initQuizUI();
   const total = QUESTIONS.length;
   const current = currentQuestionIndex + 1;
   const percent = Math.round((current / total) * 100);
 
-  const bar = document.getElementById('progress-bar');
-  const track = document.getElementById('progress-track');
-  const text = document.getElementById('progress-text');
-  const label = document.getElementById('progress-label');
-
-  if (bar) bar.style.width = `${Math.max(percent, 4)}%`;
-  if (track) {
-    track.setAttribute('aria-valuenow', String(current));
-    track.setAttribute('aria-valuemax', String(total));
+  if (QuizUI.progressBar) QuizUI.progressBar.style.width = `${Math.max(percent, 4)}%`;
+  if (QuizUI.progressTrack) {
+    QuizUI.progressTrack.setAttribute('aria-valuenow', String(current));
+    QuizUI.progressTrack.setAttribute('aria-valuemax', String(total));
   }
-  if (text) text.textContent = `${current}/${total}`;
-  if (label) label.textContent = `Question ${current} sur ${total}`;
+  if (QuizUI.progressText) QuizUI.progressText.textContent = `${current}/${total}`;
+  if (QuizUI.progressLabel) QuizUI.progressLabel.textContent = `Question ${current} sur ${total}`;
 }
 
 function renderQuestion({ animate = true } = {}) {
+  initQuizUI();
   const question = QUESTIONS[currentQuestionIndex];
   if (!question) return;
 
-  const card = document.getElementById('question-card');
-  const numEl = document.getElementById('question-number');
-  const textEl = document.getElementById('question-text');
-  const btnPrev = document.getElementById('btn-prev');
+  const { card, numEl, textEl, btnPrev } = QuizUI;
 
   if (numEl) numEl.textContent = String(currentQuestionIndex + 1).padStart(2, '0');
   if (textEl) textEl.textContent = question.text;
@@ -100,8 +112,9 @@ function renderQuestion({ animate = true } = {}) {
 }
 
 function setAnswerButtonsDisabled(disabled) {
-  document.getElementById('btn-true')?.toggleAttribute('disabled', disabled);
-  document.getElementById('btn-false')?.toggleAttribute('disabled', disabled);
+  initQuizUI();
+  QuizUI.btnTrue?.toggleAttribute('disabled', disabled);
+  QuizUI.btnFalse?.toggleAttribute('disabled', disabled);
 }
 
 function clearAdvanceTimeout() {
@@ -112,7 +125,7 @@ function clearAdvanceTimeout() {
 
   isAdvancing = false;
   setAnswerButtonsDisabled(false);
-  document.getElementById('question-card')?.classList.remove('question-card--advancing');
+  QuizUI.card?.classList.remove('question-card--advancing');
 
   const question = QUESTIONS[currentQuestionIndex];
   if (question) updateAnswerButtons(answers[question.id]);
@@ -122,26 +135,25 @@ function scheduleAutoAdvance() {
   clearAdvanceTimeout();
   isAdvancing = true;
   setAnswerButtonsDisabled(true);
-  document.getElementById('question-card')?.classList.add('question-card--advancing');
+  QuizUI.card?.classList.add('question-card--advancing');
 
   advanceTimeout = setTimeout(() => {
     advanceTimeout = null;
     isAdvancing = false;
     setAnswerButtonsDisabled(false);
-    document.getElementById('question-card')?.classList.remove('question-card--advancing');
+    QuizUI.card?.classList.remove('question-card--advancing');
     nextQuestion();
   }, AUTO_ADVANCE_MS);
 }
 
 function selectAnswer(value) {
+  initQuizUI();
   const question = QUESTIONS[currentQuestionIndex];
   if (!question || isAdvancing) return;
 
   answers[question.id] = value;
 
-  const btnTrue = document.getElementById('btn-true');
-  const btnFalse = document.getElementById('btn-false');
-  const selectedBtn = value ? btnTrue : btnFalse;
+  const selectedBtn = value ? QuizUI.btnTrue : QuizUI.btnFalse;
 
   updateAnswerButtons(value);
   selectedBtn?.classList.remove('answer-btn--confirming');
@@ -165,7 +177,7 @@ function nextQuestion() {
 
   if (currentQuestionIndex < QUESTIONS.length - 1) {
     goToQuestion(currentQuestionIndex + 1);
-    document.getElementById('btn-true')?.focus();
+    QuizUI.btnTrue?.focus();
   } else {
     showResults();
   }

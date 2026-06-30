@@ -1,6 +1,7 @@
 // results.js — Calcul de la note et affichage du corrigé
 
 let viewingHistoryId = null;
+const SCORE_RING_CIRCUMFERENCE = 2 * Math.PI * 54;
 
 function calculateScore(answersMap = answers) {
   let correct = 0;
@@ -114,9 +115,8 @@ function renderResultsUI({ score, answersMap, grade = '' }) {
   if (gabaritoEl) gabaritoEl.innerHTML = buildGabaritoHtml(answersMap);
 
   if (ringEl) {
-    const circumference = 2 * Math.PI * 54;
-    const offset = circumference - (score.percent / 100) * circumference;
-    ringEl.style.strokeDasharray = `${circumference}`;
+    const offset = SCORE_RING_CIRCUMFERENCE - (score.percent / 100) * SCORE_RING_CIRCUMFERENCE;
+    ringEl.style.strokeDasharray = `${SCORE_RING_CIRCUMFERENCE}`;
     ringEl.style.strokeDashoffset = `${offset}`;
   }
 }
@@ -139,11 +139,10 @@ async function showResults() {
   });
 
   HistoryManager.upsert(entry);
-  const synced = await syncResultToCloud(entry);
-  updateHistoryLink(name);
+  updateHistoryLinkLocal(name);
 
   setResultsContext({ mode: 'fresh', name });
-  setSyncStatus(synced);
+  setSyncStatus(false);
 
   showScreen('results-screen', {
     announceMsg: `Résultat : ${score.percent}%. ${score.correct} réponses correctes sur ${score.total}.`,
@@ -151,6 +150,11 @@ async function showResults() {
   });
 
   renderResultsUI({ score, answersMap: answers, grade });
+
+  syncResultToCloud(entry).then(synced => {
+    setSyncStatus(synced);
+    updateHistoryLink(name);
+  });
 }
 
 async function showHistoryEntry(studentKey) {

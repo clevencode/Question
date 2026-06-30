@@ -1,5 +1,8 @@
 // dashboard.js — Painel institucional (1 aluno = 1 registro por nome)
 
+let refreshTimer = null;
+let isRefreshing = false;
+
 function buildStudentSummary(entry) {
   const attemptCount = entry.attemptsHistory?.length || 1;
 
@@ -41,8 +44,7 @@ function groupByStudent(entries) {
   return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, 'pt'));
 }
 
-function getStats(entries) {
-  const students = groupByStudent(entries);
+function getStatsFromStudents(students) {
   const totalAttempts = students.reduce((sum, s) => sum + s.attemptCount, 0);
   const avg = students.length
     ? Math.round(students.reduce((sum, s) => sum + s.score, 0) / students.length)
@@ -75,17 +77,15 @@ function setStatus(message, isError = false) {
   if (!isError) announce(message);
 }
 
-function renderStats(entries) {
-  const stats = getStats(entries);
+function renderStats(stats) {
   document.getElementById('stat-students').textContent = stats.totalStudents;
   document.getElementById('stat-attempts').textContent = stats.totalAttempts;
   document.getElementById('stat-average').textContent = `${stats.average}%`;
 }
 
-function renderStudents(entries) {
+function renderStudents(students) {
   const container = document.getElementById('students-list');
   const empty = document.getElementById('dashboard-empty');
-  const students = groupByStudent(entries);
 
   if (!container) return;
 
@@ -118,10 +118,9 @@ function renderStudents(entries) {
   `).join('');
 }
 
-function renderAttempts(entries) {
+function renderAttempts(students) {
   const tbody = document.getElementById('attempts-body');
   const tableWrap = document.getElementById('attempts-table-wrap');
-  const students = groupByStudent(entries);
 
   if (!tbody) return;
 
@@ -145,7 +144,24 @@ function renderAttempts(entries) {
   `).join('');
 }
 
+function renderDashboard(entries) {
+  const students = groupByStudent(entries);
+  const stats = getStatsFromStudents(students);
+  renderStats(stats);
+  renderStudents(students);
+  renderAttempts(students);
+  return stats;
+}
+
+function scheduleDashboardRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(refreshDashboard, 500);
+}
+
 async function refreshDashboard() {
+  if (isRefreshing) return;
+  isRefreshing = true;
+
   const refreshBtn = document.getElementById('btn-refresh');
   setStatus('Sincronizando…');
   if (refreshBtn) {
@@ -156,21 +172,16 @@ async function refreshDashboard() {
 
   try {
     const entries = await HistoryStore.fetchAll();
-    const stats = getStats(entries);
-    renderStats(entries);
-    renderStudents(entries);
-    renderAttempts(entries);
+    const stats = renderDashboard(entries);
     setStatus(
       `Sincronizado — ${stats.totalStudents} aluno${stats.totalStudents !== 1 ? 's' : ''}, ` +
       `${stats.totalAttempts} tentativa${stats.totalAttempts !== 1 ? 's' : ''}`
     );
   } catch (error) {
-    renderStats([]);
-    renderStudents([]);
-    renderAttempts([]);
+    renderDashboard([]);
     setStatus(localizeError(error.message), true);
   } finally {
-    const refreshBtn = document.getElementById('btn-refresh');
+    isRefreshing = false;
     if (refreshBtn) {
       refreshBtn.disabled = false;
       refreshBtn.removeAttribute('aria-busy');
@@ -185,8 +196,8 @@ function initProfessorDashboard() {
 
   refreshDashboard();
   document.getElementById('btn-refresh')?.addEventListener('click', refreshDashboard);
-  subscribeToResultsChanges(() => refreshDashboard());
-  setInterval(refreshDashboard, 30000);
+  subscribeToResultsChanges(() => scheduleDashboardRefresh());
+  setInterval(scheduleDashboardRefresh, 30000);
 }
 
 window.initProfessorDashboard = initProfessorDashboard;

@@ -2,14 +2,19 @@
 
 const HISTORY_KEY = 'techIaQuizHistory';
 const MAX_HISTORY_ENTRIES = 30;
+let historyCache = null;
 
 const HistoryManager = {
   load() {
+    if (historyCache) return historyCache;
+
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
-      return raw ? JSON.parse(raw) : [];
+      historyCache = raw ? JSON.parse(raw) : [];
+      return historyCache;
     } catch {
-      return [];
+      historyCache = [];
+      return historyCache;
     }
   },
 
@@ -17,8 +22,10 @@ const HistoryManager = {
     try {
       const limited = entries.slice(0, MAX_HISTORY_ENTRIES);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(limited));
+      historyCache = limited;
       return limited;
     } catch {
+      historyCache = entries;
       return entries;
     }
   },
@@ -50,7 +57,8 @@ const HistoryManager = {
 
   clear() {
     localStorage.removeItem(HISTORY_KEY);
-    return [];
+    historyCache = [];
+    return historyCache;
   },
 
   getById(id) {
@@ -151,7 +159,7 @@ function escapeHtmlAttr(value) {
 async function resolveHistoryEntry(studentKey) {
   const key = normalizeStudentKey(studentKey) || studentKey;
   const local = HistoryManager.getStudentEntry(key);
-  const cloud = await fetchStudentSummary(key);
+  const cloud = await fetchStudentSummary(key, { includeAnswers: true });
 
   if (local && cloud) {
     const newer = new Date(cloud.date) > new Date(local.date) ? cloud : local;
@@ -186,17 +194,9 @@ function formatHistoryDate(iso) {
   });
 }
 
-async function updateHistoryLink(name = userName?.trim()) {
+function applyHistoryLinkUI(count) {
   const link = document.getElementById('intro-history-link');
   const navBtn = document.getElementById('nav-history-btn');
-  let count = 0;
-
-  if (name) {
-    const entries = await HistoryManager.loadForStudent(name);
-    count = entries.length;
-  } else {
-    count = HistoryManager.getUniqueStudents().length;
-  }
 
   if (link) {
     link.classList.toggle('hidden', count === 0);
@@ -205,4 +205,24 @@ async function updateHistoryLink(name = userName?.trim()) {
   }
 
   if (navBtn) navBtn.classList.toggle('hidden', count === 0);
+}
+
+function getLocalHistoryCount(name = '') {
+  if (name?.trim()) {
+    return HistoryManager.getStudentEntry(normalizeStudentKey(name)) ? 1 : 0;
+  }
+  return HistoryManager.getUniqueStudents().length;
+}
+
+function updateHistoryLinkLocal(name = userName?.trim()) {
+  applyHistoryLinkUI(getLocalHistoryCount(name));
+}
+
+async function updateHistoryLink(name = userName?.trim()) {
+  updateHistoryLinkLocal(name);
+
+  if (!name?.trim() || !isCloudReady()) return;
+
+  const entries = await HistoryManager.loadForStudent(name);
+  applyHistoryLinkUI(entries.length);
 }

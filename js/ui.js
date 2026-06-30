@@ -70,6 +70,14 @@ function setButtonLoading(button, loading, loadingLabel = 'Chargement…') {
   }
 }
 
+function debounce(fn, delay = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
 function showScreen(screenId, { announceMsg, focusSelector } = {}) {
   hideAllScreens();
   const screen = document.getElementById(screenId);
@@ -90,7 +98,9 @@ function showScreen(screenId, { announceMsg, focusSelector } = {}) {
     focusFirst(screen);
   }
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const instantScroll = screenId === 'quiz-screen'
+    || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: instantScroll ? 'instant' : 'smooth' });
 }
 
 function confirmLeaveQuiz() {

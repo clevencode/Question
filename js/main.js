@@ -117,13 +117,16 @@ function renderIntroContent() {
   }).join('');
 }
 
+const debouncedHistoryLink = debounce(name => updateHistoryLink(name), 400);
+
 function initNameInput() {
   const nameInput = document.getElementById('user-name');
   nameInput?.addEventListener('input', () => {
-    if (nameInput.value.trim()) {
-      clearNameError();
-      updateHistoryLink(nameInput.value.trim());
-    }
+    const name = nameInput.value.trim();
+    if (!name) return;
+    clearNameError();
+    updateHistoryLinkLocal(name);
+    debouncedHistoryLink(name);
   });
 }
 
@@ -141,9 +144,11 @@ function initKeyboardShortcuts() {
 
 document.addEventListener('DOMContentLoaded', () => {
   renderIntroContent();
+  initQuizUI();
   initNameInput();
   initKeyboardShortcuts();
   initHistoryListActions();
+  updateHistoryLinkLocal();
   updateHistoryLink();
   showIntro();
 });
