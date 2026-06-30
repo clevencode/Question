@@ -28,6 +28,30 @@ const QuizFlow = {
   }
 };
 
+function syncAdvanceDuration() {
+  document.documentElement.style.setProperty('--advance-ms', `${AUTO_ADVANCE_MS}ms`);
+}
+
+function updateAnswerButtons(selectedValue) {
+  const btnTrue = document.getElementById('btn-true');
+  const btnFalse = document.getElementById('btn-false');
+
+  [btnTrue, btnFalse].forEach(btn => {
+    btn?.classList.remove('answer-btn--confirming', 'answer-btn--dimmed');
+  });
+
+  const isTrue = selectedValue === true;
+  const isFalse = selectedValue === false;
+
+  btnTrue?.classList.toggle('answer-btn--selected', isTrue);
+  btnFalse?.classList.toggle('answer-btn--selected', isFalse);
+  btnTrue?.classList.toggle('answer-btn--dimmed', isFalse);
+  btnFalse?.classList.toggle('answer-btn--dimmed', isTrue);
+
+  btnTrue?.setAttribute('aria-pressed', String(isTrue));
+  btnFalse?.setAttribute('aria-pressed', String(isFalse));
+}
+
 function updateProgress() {
   const total = QUESTIONS.length;
   const current = currentQuestionIndex + 1;
@@ -47,31 +71,29 @@ function updateProgress() {
   if (label) label.textContent = `Question ${current} sur ${total}`;
 }
 
-function renderQuestion() {
+function renderQuestion({ animate = true } = {}) {
   const question = QUESTIONS[currentQuestionIndex];
   if (!question) return;
 
   const card = document.getElementById('question-card');
   const numEl = document.getElementById('question-number');
   const textEl = document.getElementById('question-text');
-  const btnTrue = document.getElementById('btn-true');
-  const btnFalse = document.getElementById('btn-false');
   const btnPrev = document.getElementById('btn-prev');
 
   if (numEl) numEl.textContent = String(currentQuestionIndex + 1).padStart(2, '0');
   if (textEl) textEl.textContent = question.text;
 
-  const current = answers[question.id];
-  btnTrue?.classList.toggle('answer-btn--selected', current === true);
-  btnFalse?.classList.toggle('answer-btn--selected', current === false);
-  btnTrue?.setAttribute('aria-pressed', String(current === true));
-  btnFalse?.setAttribute('aria-pressed', String(current === false));
+  updateAnswerButtons(answers[question.id]);
 
   if (btnPrev) btnPrev.disabled = currentQuestionIndex === 0;
 
-  card?.classList.remove('question-card--enter');
-  void card?.offsetWidth;
-  card?.classList.add('question-card--enter');
+  card?.classList.remove('question-card--advancing');
+
+  if (animate) {
+    card?.classList.remove('question-card--enter');
+    void card?.offsetWidth;
+    card?.classList.add('question-card--enter');
+  }
 
   updateProgress();
   announce(`Question ${currentQuestionIndex + 1} sur ${QUESTIONS.length}. ${question.text}`);
@@ -87,19 +109,26 @@ function clearAdvanceTimeout() {
     clearTimeout(advanceTimeout);
     advanceTimeout = null;
   }
+
   isAdvancing = false;
   setAnswerButtonsDisabled(false);
+  document.getElementById('question-card')?.classList.remove('question-card--advancing');
+
+  const question = QUESTIONS[currentQuestionIndex];
+  if (question) updateAnswerButtons(answers[question.id]);
 }
 
 function scheduleAutoAdvance() {
   clearAdvanceTimeout();
   isAdvancing = true;
   setAnswerButtonsDisabled(true);
+  document.getElementById('question-card')?.classList.add('question-card--advancing');
 
   advanceTimeout = setTimeout(() => {
     advanceTimeout = null;
     isAdvancing = false;
     setAnswerButtonsDisabled(false);
+    document.getElementById('question-card')?.classList.remove('question-card--advancing');
     nextQuestion();
   }, AUTO_ADVANCE_MS);
 }
@@ -109,7 +138,17 @@ function selectAnswer(value) {
   if (!question || isAdvancing) return;
 
   answers[question.id] = value;
-  renderQuestion();
+
+  const btnTrue = document.getElementById('btn-true');
+  const btnFalse = document.getElementById('btn-false');
+  const selectedBtn = value ? btnTrue : btnFalse;
+
+  updateAnswerButtons(value);
+  selectedBtn?.classList.remove('answer-btn--confirming');
+  void selectedBtn?.offsetWidth;
+  selectedBtn?.classList.add('answer-btn--confirming');
+
+  announce(value ? 'Vrai sélectionné.' : 'Faux sélectionné.');
   scheduleAutoAdvance();
 }
 
@@ -135,3 +174,5 @@ function nextQuestion() {
 function prevQuestion() {
   if (currentQuestionIndex > 0) goToQuestion(currentQuestionIndex - 1);
 }
+
+syncAdvanceDuration();

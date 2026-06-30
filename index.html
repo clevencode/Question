@@ -119,11 +119,11 @@
                 <p id="question-text" class="question-card__text"></p>
 
                 <div class="answer-group" role="group" aria-label="Choisir Vrai ou Faux">
-                    <button type="button" id="btn-true" class="answer-btn" onclick="selectAnswer(true)" aria-pressed="false">
-                        Vrai
+                    <button type="button" id="btn-true" class="answer-btn answer-btn--true" onclick="selectAnswer(true)" aria-pressed="false">
+                        <span class="answer-btn__label">Vrai</span>
                     </button>
-                    <button type="button" id="btn-false" class="answer-btn" onclick="selectAnswer(false)" aria-pressed="false">
-                        Faux
+                    <button type="button" id="btn-false" class="answer-btn answer-btn--false" onclick="selectAnswer(false)" aria-pressed="false">
+                        <span class="answer-btn__label">Faux</span>
                     </button>
                 </div>
             </article>
