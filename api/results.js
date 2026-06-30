@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const PROFESSOR_PASSWORD = process.env.PROFESSOR_PASSWORD || '1234';
+const PROFESSOR_PASSWORD = process.env.PROFESSOR_PASSWORD || '';
 
 function isConfigured() {
   return SUPABASE_URL?.startsWith('https://') && SERVICE_KEY?.length > 20;
@@ -58,7 +58,8 @@ function fromRow(row) {
 }
 
 function isProfessor(req) {
-  return req.headers['x-professor-password'] === PROFESSOR_PASSWORD;
+  return PROFESSOR_PASSWORD.length > 0
+    && req.headers['x-professor-password'] === PROFESSOR_PASSWORD;
 }
 
 module.exports = async (req, res) => {
