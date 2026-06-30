@@ -67,7 +67,7 @@ function launchQuiz(name, { fresh = true } = {}) {
     announceMsg: fresh
       ? `Quiz commencé. Question 1 sur ${QUESTIONS.length}.`
       : `Quiz repris. Question ${questionNum} sur ${QUESTIONS.length}.`,
-    focusSelector: '#btn-true'
+    focusSelector: '#question-card'
   });
 
   const greeting = document.getElementById('quiz-greeting');
@@ -86,7 +86,7 @@ function resumeQuiz(progress) {
   const questionNum = currentQuestionIndex + 1;
   showScreen('quiz-screen', {
     announceMsg: `Quiz repris. Question ${questionNum} sur ${QUESTIONS.length}.`,
-    focusSelector: '#btn-true'
+    focusSelector: '#question-card'
   });
 
   const greeting = document.getElementById('quiz-greeting');

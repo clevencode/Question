@@ -589,8 +589,23 @@ body {
 }
 
 .answer-btn:hover:not(:disabled):not(.answer-btn--selected) {
-  border-color: var(--blue);
-  color: var(--blue);
+  border-color: var(--black);
+  background: #f7f7f7;
+  color: var(--black);
+}
+
+.answer-btn:focus-visible {
+  outline: 2px solid var(--black);
+  outline-offset: 2px;
+}
+
+.question-card:focus-visible {
+  outline: none;
+}
+
+.question-card:focus-visible .question-card__text {
+  outline: 2px solid var(--blue);
+  outline-offset: 4px;
 }
 
 .answer-btn:active:not(:disabled) {

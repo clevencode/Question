@@ -156,6 +156,22 @@ function syncAdvanceDuration() {
   document.documentElement.style.setProperty('--advance-ms', `${AUTO_ADVANCE_MS}ms`);
 }
 
+function shuffleAnswerButtons() {
+  initQuizUI();
+  const group = QuizUI.btnTrue?.parentElement;
+  if (!group || !QuizUI.btnTrue || !QuizUI.btnFalse) return;
+
+  if (Math.random() < 0.5) {
+    group.append(QuizUI.btnFalse, QuizUI.btnTrue);
+  } else {
+    group.append(QuizUI.btnTrue, QuizUI.btnFalse);
+  }
+}
+
+function focusQuestionCard() {
+  QuizUI.card?.focus({ preventScroll: true });
+}
+
 function updateAnswerButtons(selectedValue) {
   initQuizUI();
   const { btnTrue, btnFalse } = QuizUI;
@@ -220,6 +236,7 @@ function renderQuestion({ animate = true } = {}) {
   if (numEl) numEl.textContent = String(currentQuestionIndex + 1).padStart(2, '0');
   if (textEl) textEl.textContent = question.text;
 
+  shuffleAnswerButtons();
   updateAnswerButtons(answers[question.id]);
   updateQuizNavButtons();
 
@@ -305,7 +322,7 @@ function nextQuestion() {
 
   if (currentQuestionIndex < QUESTIONS.length - 1) {
     goToQuestion(currentQuestionIndex + 1);
-    QuizUI.btnTrue?.focus();
+    focusQuestionCard();
   } else {
     showResults();
   }
